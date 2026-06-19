@@ -1,387 +1,1096 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>Khel.o | The Sahyogi Patch</title>
-<!-- Fonts & Icons -->
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,1,0" />
-<style>
-    :root {
-        --bg: #050508;
-        --surface: rgba(255, 255, 255, 0.04);
-        --glass: rgba(255, 255, 255, 0.08);
-        --accent: #fbbf24;
-        --text: #f8fafc;
-        --muted: #94a3b8;
-        --radius: 20px;
-    }
-    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-    body {
-        font-family: 'Inter', sans-serif;
-        background: var(--bg);
-        color: var(--text);
-        min-height: 100vh;
-        overflow-x: hidden;
-        display: flex;
-        flex-direction: column;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Khel.o · Living Universe 2086</title>
+    
+    <!-- Premium Typography & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,600,1,0" />
+    
+    <!-- Core Engine Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.4/gsap.min.js"></script>
 
-    /* --- HEADER & ADMIN LINK --- */
-    header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 20px 24px;
-        position: sticky;
-        top: 0;
-        z-index: 100;
-        background: rgba(5, 5, 8, 0.8);
-        backdrop-filter: blur(20px);
-        border-bottom: 1px solid var(--glass);
-    }
-    .logo {
-        font-family: 'Space Grotesk', sans-serif;
-        font-size: 1.8rem;
-        font-weight: 700;
-        color: var(--accent);
-        letter-spacing: 2px;
-        text-shadow: 0 0 20px rgba(251, 191, 36, 0.4);
-    }
-    .admin-link {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        padding: 10px 18px;
-        background: var(--surface);
-        border: 1px solid var(--glass);
-        border-radius: 40px;
-        color: var(--text);
-        text-decoration: none;
-        font-size: 0.9rem;
-        font-weight: 600;
-        transition: all 0.3s ease;
-        backdrop-filter: blur(10px);
-    }
-    .admin-link:hover {
-        background: var(--accent);
-        color: #000;
-        border-color: var(--accent);
-        transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(251, 191, 36, 0.3);
-    }
-    .admin-link .material-symbols-rounded { font-size: 20px; }
+    <style>
+        :root {
+            --nexus-scale: 1.0;
+            --bg: #030508;
+            --surface: rgba(255, 255, 255, 0.04);
+            --glass: rgba(255, 255, 255, 0.08);
+            --accent: #fbbf24;
+            --text: #f8fafc;
+            --muted: #94a3b8;
+            --radius: 24px;
+        }
 
-    /* --- MAIN CONTENT --- */
-    main {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        padding: 40px 20px 120px;
-    }
-    .intent-display {
-        font-family: 'Space Grotesk', sans-serif;
-        font-size: 1.5rem;
-        font-weight: 600;
-        text-align: center;
-        margin-bottom: 40px;
-        min-height: 40px;
-        color: var(--muted);
-        letter-spacing: 1px;
-    }
-    .intent-display span.highlight { color: var(--accent); }
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; overflow: hidden; height: 100vh; touch-action: none; overscroll-behavior: none;}
+        
+        /* --- 3D CANVAS --- */
+        #canvas-container { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 1; }
+        
+        /* 3D HTML Labels */
+        .html-label { position: absolute; pointer-events: none; z-index: 5; transform: translate(-50%, -50%); transition: opacity 0.2s ease; }
+        .planet-label { color: #a0f0ff; font-size: 11px; font-weight: 700; text-shadow: 0 0 15px rgba(0,200,255,0.8); background: rgba(3,5,8,0.6); padding: 4px 14px; border-radius: 20px; border: 1px solid rgba(160,240,255,0.2); backdrop-filter: blur(8px); font-family: 'Space Grotesk'; letter-spacing: 1px; text-transform: uppercase;}
+        .marker-label { color: #fff; font-size: 10px; font-weight: 600; background: rgba(3,5,8,0.8); padding: 4px 10px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.15); backdrop-filter: blur(8px); white-space: nowrap; box-shadow: 0 4px 10px rgba(0,0,0,0.5);}
 
-    /* --- THE 12-TILE GRID --- */
-    .grid-container {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-        gap: 20px;
-        width: 100%;
-        max-width: 1200px;
-    }
-    .tile {
-        background: var(--surface);
-        border: 1px solid var(--glass);
-        border-radius: var(--radius);
-        padding: 24px;
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-        text-decoration: none;
-        color: inherit;
-        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-        position: relative;
-        overflow: hidden;
-        opacity: 0;
-        transform: translateY(20px);
-        animation: fadeInUp 0.5s forwards;
-    }
-    .tile:hover {
-        transform: translateY(-6px);
-        border-color: rgba(255,255,255,0.2);
-        background: rgba(255, 255, 255, 0.06);
-        box-shadow: 0 15px 30px rgba(0,0,0,0.5);
-    }
-    .tile::before {
-        content: '';
-        position: absolute;
-        top: 0; left: 0; right: 0;
-        height: 3px;
-        background: var(--accent);
-        opacity: 0;
-        transition: opacity 0.3s;
-    }
-    .tile:hover::before { opacity: 1; }
+        /* --- HUD & HEADER --- */
+        .hud-layer { position: absolute; inset: 0; z-index: 10; pointer-events: none; display: flex; flex-direction: column; justify-content: space-between; padding: 20px;}
+        .interactive { pointer-events: auto; }
+        .jumble-text { font-variant-numeric: tabular-nums; display: inline-block; }
 
-    .tile-header { display: flex; justify-content: space-between; align-items: center; }
-    .tile-icon { font-size: 2.5rem; }
-    .tile-type {
-        font-size: 0.7rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        padding: 4px 10px;
-        border-radius: 20px;
-        background: rgba(251, 191, 36, 0.15);
-        color: var(--accent);
-    }
-    .tile-type.book { background: rgba(59, 130, 246, 0.15); color: #60a5fa; }
-    .tile-type.event { background: rgba(16, 185, 129, 0.15); color: #34d399; }
-    .tile-type.fact { background: rgba(168, 85, 247, 0.15); color: #c084fc; }
+        header { display: flex; justify-content: space-between; align-items: flex-start; w-full; }
+        .logo-group { display: flex; flex-direction: column; gap: 8px;}
+        .logo { font-family: 'Space Grotesk', sans-serif; font-size: 1.8rem; font-weight: 700; color: #a7f3d0; letter-spacing: 2px; text-shadow: 0 0 20px rgba(167, 243, 208, 0.4); cursor: pointer; background: rgba(3, 5, 8, 0.7); backdrop-filter: blur(12px); padding: 10px 24px; border-radius: 40px; border: 1px solid rgba(167, 243, 208, 0.2); transition: 0.3s; display: flex; align-items: center; gap: 10px;}
+        .logo:hover { transform: scale(1.05); border-color: #fde047; box-shadow: 0 0 30px rgba(253,224,71,0.2); }
+        .layer-indicator { font-size: 0.8rem; font-weight: 600; color: var(--muted); background: var(--surface); padding: 6px 16px; border-radius: 20px; border: 1px solid var(--glass); backdrop-filter: blur(8px); align-self: flex-start; letter-spacing: 1px;}
 
-    .tile-title { font-size: 1.1rem; font-weight: 600; line-height: 1.4; }
-    .tile-action {
-        margin-top: auto;
-        font-size: 0.85rem;
-        font-weight: 600;
-        color: var(--muted);
-        display: flex;
-        align-items: center;
-        gap: 4px;
-        transition: color 0.2s;
-    }
-    .tile:hover .tile-action { color: var(--accent); }
+        /* Floating 5W1H Intent Display */
+        .intent-display { position: absolute; top: 100px; left: 50%; transform: translateX(-50%); background: rgba(3, 5, 8, 0.8); backdrop-filter: blur(16px); padding: 12px 32px; border-radius: 40px; font-family: 'Space Grotesk'; font-size: 1.25rem; font-weight: 700; color: #fff; border: 1px solid var(--glass); box-shadow: 0 10px 40px rgba(0,0,0,0.4); opacity: 0; transition: 0.4s; text-align: center; white-space: nowrap; pointer-events: none;}
+        .intent-display.show { opacity: 1; transform: translate(-50%, 20px); }
+        .intent-display span.highlight { color: #fde047; }
 
-    @keyframes fadeInUp {
-        to { opacity: 1; transform: translateY(0); }
-    }
+        /* ========================================== */
+        /* ELASTIC CHROME-STYLE NEXUS WHEEL (2086)    */
+        /* ========================================== */
+        .nexus-wrapper {
+            position: absolute;
+            z-index: 100;
+            user-select: none;
+            cursor: grab;
+            transition: transform 0.1s ease-out;
+        }
+        .nexus-wrapper:active { cursor: grabbing; }
 
-    /* --- FLOATING 5W1H DICE --- */
-    .fab-dice {
-        position: fixed;
-        bottom: 32px;
-        right: 32px;
-        width: 72px;
-        height: 72px;
-        border-radius: 50%;
-        border: none;
-        background: linear-gradient(135deg, #fbbf24, #f59e0b);
-        color: #000;
-        font-size: 2rem;
-        cursor: pointer;
-        box-shadow: 0 10px 30px rgba(251, 191, 36, 0.4);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-        z-index: 50;
-    }
-    .fab-dice:hover { transform: scale(1.1) rotate(15deg); }
-    .fab-dice:active { transform: scale(0.95); }
-    .fab-dice.rolling .material-symbols-rounded { animation: spin 0.5s linear infinite; }
-    @keyframes spin { 100% { transform: rotate(360deg); } }
+        /* The Search Popout */
+        .search-popout {
+            position: absolute; top: -60px; left: 50%; transform: translateX(-50%) translateY(20px) scale(0.9);
+            opacity: 0; pointer-events: none; transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.15); border-radius: 30px;
+            padding: 8px 16px; display: flex; gap: 8px; align-items: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6); width: 280px;
+        }
+        .search-popout.active { opacity: 1; pointer-events: auto; transform: translateX(-50%) translateY(0) scale(1); }
+        .search-popout input { flex: 1; background: transparent; border: none; color: #fff; font-size: 0.95rem; outline: none; font-family: 'Inter'; font-weight: 500;}
+        
+        /* The Wheel Body */
+        .chrome-wheel {
+            position: relative;
+            width: 140px; height: 140px;
+            border-radius: 50%;
+            overflow: hidden;
+            transform: rotate(45deg);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.8), inset 0 0 15px rgba(255,255,255,0.2);
+            background: #000;
+        }
+        
+        .nexus-quad {
+            position: absolute;
+            width: 50%; height: 50%;
+            display: flex; align-items: center; justify-content: center;
+            transition: filter 0.2s, background 0.2s; cursor: pointer;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.6);
+            pointer-events: auto;
+        }
+        .nexus-quad:hover { filter: brightness(1.3); z-index: 5; }
+        .nexus-quad .icon { transform: rotate(-45deg); font-size: 24px; color: #fff; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); transition: 0.2s;}
+        .nexus-quad:hover .icon { transform: rotate(-45deg) scale(1.15); }
 
-    /* --- MOBILE OPTIMIZATION --- */
-    @media (max-width: 600px) {
-        header { padding: 16px; }
-        .logo { font-size: 1.4rem; }
-        .admin-link span:last-child { display: none; } /* Hide text on mobile, keep icon */
-        .admin-link { padding: 10px; }
-        .intent-display { font-size: 1.2rem; }
-        .grid-container { grid-template-columns: 1fr; }
-        .fab-dice { width: 64px; height: 64px; bottom: 24px; right: 24px; }
-    }
-</style>
+        .quad-top { top: 0; left: 0; background: linear-gradient(135deg, #ef4444, #be123c); }
+        .quad-right { top: 0; right: 0; background: linear-gradient(135deg, #f59e0b, #b45309); }
+        .quad-bottom { bottom: 0; right: 0; background: linear-gradient(135deg, #10b981, #047857); }
+        .quad-left { bottom: 0; left: 0; background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
+
+        .nexus-core {
+            position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%) rotate(-45deg);
+            width: 56px; height: 56px; border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, #a0f0ff, #0284c7);
+            border: 3px solid #fff;
+            display: flex; align-items: center; justify-content: center;
+            z-index: 10; cursor: pointer; pointer-events: auto;
+            box-shadow: 0 0 20px rgba(56, 189, 248, 0.5), inset 0 -4px 10px rgba(0,0,0,0.4);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .nexus-core:hover { transform: translate(-50%, -50%) rotate(-45deg) scale(1.15); box-shadow: 0 0 30px rgba(56, 189, 248, 0.9); }
+        .nexus-core .icon { color: #fff; font-size: 26px; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5)); }
+        .nexus-core.rolling .icon { animation: spin 0.4s linear infinite; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        /* ========================================== */
+        /* SYNTHESIS MODAL (The Packaged AI Tile)     */
+        /* ========================================== */
+        .synthesis-modal {
+            position: fixed; inset: 0; background: rgba(3, 5, 8, 0.85); backdrop-filter: blur(12px);
+            z-index: 400; display: flex; align-items: center; justify-content: center;
+            opacity: 0; pointer-events: none; transition: 0.4s ease; padding: 20px;
+        }
+        .synthesis-modal.active { opacity: 1; pointer-events: auto; }
+        .synthesis-card {
+            background: linear-gradient(145deg, #0f172a, #030508);
+            border: 1px solid rgba(255,255,255,0.1); border-radius: 32px;
+            padding: 40px; max-width: 600px; width: 100%; text-align: center;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.8); position: relative;
+            transform: scale(0.9); transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .synthesis-modal.active .synthesis-card { transform: scale(1); }
+        .synthesis-title { font-family: 'Space Grotesk'; font-size: 1.5rem; color: #fff; margin-bottom: 16px; }
+        .synthesis-title span { color: #fde047; }
+        .synthesis-fact { font-size: 1.1rem; color: #a0f0ff; line-height: 1.6; margin-bottom: 32px; font-style: italic; }
+        .synthesis-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .syn-item {
+            background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 20px; padding: 20px; display: flex; flex-direction: column;
+            align-items: center; gap: 12px; text-decoration: none; color: #fff;
+            transition: 0.3s;
+        }
+        .syn-item:hover { background: rgba(255,255,255,0.08); transform: translateY(-4px); border-color: rgba(255,255,255,0.2); }
+        .syn-item .material-symbols-rounded { font-size: 32px; }
+        .syn-item span:last-child { font-size: 0.85rem; font-weight: 600; text-align: center; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .syn-item.book .material-symbols-rounded { color: #60a5fa; }
+        .syn-item.product .material-symbols-rounded { color: #fbbf24; }
+        .syn-item.event .material-symbols-rounded { color: #34d399; }
+        .syn-item.community .material-symbols-rounded { color: #f472b6; }
+
+        /* ========================================== */
+        /* LIBRARY VIEW (The Sahyogi Grid Patch)      */
+        /* ========================================== */
+        .library-view { position: fixed; inset: 0; background: rgba(5, 8, 12, 0.96); backdrop-filter: blur(30px); z-index: 200; display: flex; flex-direction: column; align-items: center; opacity: 0; pointer-events: none; transition: 0.4s ease; padding: 40px 20px 100px; overflow-y: auto;}
+        .library-view.active { opacity: 1; pointer-events: auto; }
+        
+        .lib-header { max-width: 1200px; width: 100%; display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;}
+        .lib-title { font-family: 'Space Grotesk'; font-size: 2.5rem; font-weight: 700; color: #fff;}
+        .close-btn { background: var(--surface); border: 1px solid var(--glass); color: #fff; width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;}
+        .close-btn:hover { background: rgba(255,255,255,0.1); transform: rotate(90deg);}
+
+        .grid-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; width: 100%; max-width: 1200px; }
+        .tile { background: var(--surface); border: 1px solid var(--glass); border-radius: var(--radius); padding: 24px; display: flex; flex-direction: column; gap: 12px; text-decoration: none; color: inherit; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); position: relative; overflow: hidden; opacity: 0; transform: translateY(20px); }
+        .tile.visible { animation: fadeInUp 0.5s forwards; }
+        .tile:hover { transform: translateY(-6px); border-color: rgba(255,255,255,0.2); background: rgba(255, 255, 255, 0.06); box-shadow: 0 15px 30px rgba(0,0,0,0.5); }
+        .tile::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--accent); opacity: 0; transition: opacity 0.3s; }
+        .tile:hover::before { opacity: 1; }
+
+        .tile-header { display: flex; justify-content: space-between; align-items: center; }
+        .tile-icon { font-size: 2.5rem; }
+        .tile-type { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; padding: 4px 10px; border-radius: 20px; background: rgba(251, 191, 36, 0.15); color: var(--accent); }
+        .tile-type.book { background: rgba(59, 130, 246, 0.15); color: #60a5fa; }
+        .tile-type.event { background: rgba(16, 185, 129, 0.15); color: #34d399; }
+        .tile-type.concept { background: rgba(168, 85, 247, 0.15); color: #c084fc; }
+
+        .tile-title { font-size: 1.1rem; font-weight: 600; line-height: 1.4; font-family: 'Space Grotesk'; color: #fff;}
+        .tile-desc { font-size: 0.85rem; color: var(--muted); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; flex: 1;}
+        .tile-action { margin-top: auto; font-size: 0.85rem; font-weight: 600; color: var(--muted); display: flex; align-items: center; gap: 4px; transition: color 0.2s; }
+        .tile:hover .tile-action { color: var(--accent); }
+
+        @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
+
+        /* --- TOASTS & MODALS --- */
+        #toast-container { position: fixed; top: 30px; left: 50%; transform: translateX(-50%); z-index: 500; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
+        .toast { background: rgba(16, 185, 129, 0.95); backdrop-filter: blur(10px); color: #fff; padding: 12px 24px; border-radius: 30px; font-weight: 700; box-shadow: 0 10px 30px rgba(0,0,0,0.5); animation: slideDown 0.3s ease forwards; display: flex; align-items: center; gap: 8px;}
+        @keyframes slideDown { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(12px); z-index: 300; display: none; align-items: center; justify-content: center; padding: 20px; opacity: 0; transition: opacity 0.3s;}
+        .modal.active { display: flex; opacity: 1; }
+        .modal-card { background: #030508; border: 1px solid rgba(255,255,255,0.1); border-radius: var(--radius); padding: 32px; width: 100%; max-width: 500px; box-shadow: 0 24px 80px rgba(0,0,0,0.9); transform: translateY(20px); transition: 0.3s;}
+        .modal.active .modal-card { transform: translateY(0); }
+        .modal-input { background: var(--surface); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 14px 16px; color: #fff; font-size: 1rem; width: 100%; outline: none; margin-bottom: 16px; font-family: 'Inter';}
+        .modal-input:focus { border-color: var(--accent); background: rgba(251, 191, 36, 0.05); }
+        .btn-solid { background: var(--accent); color: #000; border: none; border-radius: 30px; padding: 14px 24px; font-weight: 700; cursor: pointer; width: 100%; font-size: 1rem; display: flex; justify-content: center; align-items: center; gap: 8px; transition: 0.2s;}
+        .btn-solid:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(251, 191, 36, 0.4); background: #fcd34d;}
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
+    </style>
 </head>
 <body>
 
-<!-- HEADER -->
-<header>
-    <div class="logo" id="logo-text">KHEL.O</div>
-    <!-- ADMIN LINK -->
-    <a href="admin.html" class="admin-link" title="Go to Admin Panel">
-        <span class="material-symbols-rounded">shield_person</span>
-        <span>Admin</span>
-    </a>
-</header>
+    <!-- 1. 3D WEBGL GALAXY CANVAS -->
+    <div id="canvas-container"></div>
+    <div id="labels-container"></div>
 
-<!-- MAIN CONTENT -->
-<main>
-    <div class="intent-display" id="intent-display">
-        Roll the <span class="highlight">5W1H Dice</span> to explore the mesh...
-    </div>
-    
-    <div class="grid-container" id="grid-container">
-        <!-- Tiles populated dynamically by JS -->
-    </div>
-</main>
+    <!-- TOAST PORTAL -->
+    <div id="toast-container"></div>
 
-<!-- FLOATING DICE -->
-<button class="fab-dice" id="fab-dice" onclick="rollDice()">
-    <span class="material-symbols-rounded">casino</span>
-</button>
-
-<script>
-    // ==========================================
-    // 1. THE TRUTH DATABASE (Embedded, No Server Needed)
-    // ==========================================
-    const DB = [
-        // Products (Amazon Affiliate)
-        { id: "p1", type: "product", title: "Rainwater Harvesting Barrel", link: "https://www.amazon.com/s?k=rainwater+harvesting+barrel&tag=amazon0339f-21", icon: "🪣", tags: ["water", "eco", "garden", "ba.che", "why", "how"] },
-        { id: "p2", type: "product", title: "Native Wildflower Seed Mix", link: "https://www.amazon.com/s?k=native+wildflower+seeds&tag=amazon0339f-21", icon: "🌻", tags: ["biodiversity", "bees", "eco", "khel.o", "what", "where"] },
-        { id: "p3", type: "product", title: "Home Composting Kit", link: "https://www.amazon.com/s?k=composting+starter+kit&tag=amazon0339f-21", icon: "🪱", tags: ["soil", "waste", "garden", "kri.shi", "how", "why"] },
-        { id: "p4", type: "product", title: "Solar Power Bank 20000mAh", link: "https://www.amazon.com/s?k=solar+power+bank&tag=amazon0339f-21", icon: "🔋", tags: ["energy", "solar", "tech", "mu.kti", "where", "when"] },
-        { id: "p5", type: "product", title: "Organic Vegetable Seed Kit", link: "https://www.amazon.com/s?k=organic+vegetable+seeds&tag=amazon0339f-21", icon: "🍅", tags: ["food", "garden", "health", "sa.hyog", "what", "how"] },
-        { id: "p6", type: "product", title: "Water Quality Testing Kit", link: "https://www.amazon.com/s?k=water+testing+kit&tag=amazon0339f-21", icon: "💧", tags: ["water", "health", "science", "ba.che", "why", "what"] },
+    <!-- 2. HUD NAVIGATION LAYER -->
+    <div class="hud-layer">
         
-        // Books
-        { id: "b1", type: "book", title: "The Water Will Come", link: "https://www.amazon.com/s?k=the+water+will+come+jeff+goodell&tag=amazon0339f-21", icon: "📘", tags: ["water", "climate", "science", "why", "what"] },
-        { id: "b2", type: "book", title: "Braiding Sweetgrass", link: "https://www.amazon.com/s?k=braiding+sweetgrass&tag=amazon0339f-21", icon: "🌿", tags: ["eco", "indigenous", "nature", "khel.o", "how", "why"] },
-        { id: "b3", type: "book", title: "Drawdown: The Most Comprehensive Plan", link: "https://www.amazon.com/s?k=drawdown+paul+hawken&tag=amazon0339f-21", icon: "🌍", tags: ["climate", "solutions", "eco", "kri.shi", "what", "how"] },
-        { id: "b4", type: "book", title: "The Hidden Life of Trees", link: "https://www.amazon.com/s?k=the+hidden+life+of+trees&tag=amazon0339f-21", icon: "🌳", tags: ["nature", "forest", "science", "mu.kti", "why", "where"] },
-        { id: "b5", type: "book", title: "Silent Spring", link: "https://www.amazon.com/s?k=silent+spring+rachel+carson&tag=amazon0339f-21", icon: "🐦", tags: ["pollution", "history", "eco", "sa.hyog", "what", "why"] },
-        { id: "b6", type: "book", title: "Thinking, Fast and Slow", link: "https://www.amazon.com/s?k=thinking+fast+and+slow&tag=amazon0339f-21", icon: "🧠", tags: ["psychology", "mind", "human", "ba.che", "how", "what"] },
-        
-        // Events
-        { id: "e1", type: "event", title: "World Water Summit", link: "https://www.worldwatersummit.org/", icon: "🌊", tags: ["water", "conference", "global", "where", "when"] },
-        { id: "e2", type: "event", title: "Earth Day Network", link: "https://www.earthday.org/", icon: "🌍", tags: ["eco", "global", "action", "khel.o", "when", "where"] },
-        { id: "e3", type: "event", title: "TED: The Future We Choose", link: "https://www.ted.com/topics/climate-change", icon: "🎤", tags: ["climate", "talks", "ideas", "kri.shi", "why", "how"] },
-        { id: "e4", type: "event", title: "Global Citizen Festival", link: "https://www.globalcitizen.org/", icon: "🎶", tags: ["community", "music", "action", "mu.kti", "where", "when"] },
-        { id: "e5", type: "event", title: "UN Biodiversity Conference", link: "https://www.cbd.int/conferences/", icon: "🦋", tags: ["biodiversity", "un", "global", "sa.hyog", "when", "where"] },
-        { id: "e6", type: "event", title: "Maker Faire (Open Source)", link: "https://makerfaire.com/", icon: "🛠️", tags: ["tech", "diy", "community", "ba.che", "how", "what"] },
-        
-        // Facts
-        { id: "f1", type: "fact", title: "Only 3% of Earth's water is fresh.", icon: "💧", tags: ["water", "fact", "nature", "why", "what"] },
-        { id: "f2", type: "fact", title: "Trees communicate via fungal networks.", icon: "🍄", tags: ["nature", "science", "forest", "how", "what"] },
-        { id: "f3", type: "fact", title: "Composting reduces methane emissions.", icon: "🌱", tags: ["soil", "climate", "fact", "why", "how"] },
-        { id: "f4", type: "fact", title: "Solar is now the cheapest electricity.", icon: "☀️", tags: ["energy", "fact", "tech", "what", "why"] },
-        { id: "f5", type: "fact", title: "Bees pollinate 1/3 of our food.", icon: "🐝", tags: ["food", "nature", "fact", "why", "what"] },
-        { id: "f6", type: "fact", title: "The human brain uses 20% of body energy.", icon: "🧠", tags: ["human", "health", "fact", "how", "what"] }
-    ];
+        <header class="interactive">
+            <div class="logo-group">
+                <div class="logo" onclick="app.zoomTo('galaxy')">
+                    <span class="material-symbols-rounded text-secondary" style="font-size: 32px;">psychology_alt</span>
+                    <span id="dynamic-logo" class="jumble-text">ba.che</span>
+                </div>
+                <div class="layer-indicator" id="layer-indicator">🌌 Galaxy</div>
+            </div>
+        </header>
 
-    // ==========================================
-    // 2. THE JUMBLING SEMANTIC ENGINE
-    // ==========================================
-    function getMatchingItems(intent, keyword) {
-        let scored = DB.map(item => {
-            let score = 0;
-            if (item.tags.includes(intent.toLowerCase())) score += 5;
-            if (item.tags.includes(keyword.toLowerCase())) score += 5;
+        <!-- DYNAMIC 5W1H INTENT BANNER -->
+        <div id="intent-display" class="intent-display interactive">Weave the Matrix.</div>
+
+        <!-- ========================================== -->
+        <!-- ELASTIC CHROME-STYLE NEXUS WHEEL (2086)    -->
+        <!-- ========================================== -->
+        <div class="nexus-wrapper interactive" id="chrome-nexus" style="transform: scale(var(--nexus-scale));">
             
-            // Fuzzy match for jumbled words
-            const jumbles = ["khel.o", "ba.che", "kri.shi", "ka.li", "mu.kti", "sa.hyog"];
-            jumbles.forEach(j => {
-                if (keyword.includes(j) && item.tags.includes(j)) score += 10;
-            });
+            <!-- Floating Pop-out Search (Top) -->
+            <div class="search-popout" id="search-popout">
+                <span class="material-symbols-rounded text-rose-400">search</span>
+                <input type="text" id="nexus-search" placeholder="Search Orgs, Books..." autocomplete="off" onkeypress="if(event.key === 'Enter') app.executeSearch()">
+            </div>
+
+            <!-- The Wheel Body -->
+            <div class="chrome-wheel">
+                <!-- Top (Red): Search -->
+                <div class="nexus-quad quad-top" onclick="app.handleInteraction(this, 'toggleSearch')" title="Search">
+                    <span class="material-symbols-rounded icon">search</span>
+                </div>
+                <!-- Right (Yellow): Library / Grid -->
+                <div class="nexus-quad quad-right" onclick="app.handleInteraction(this, 'openLibrary')" title="Knowledge Grid">
+                    <span class="material-symbols-rounded icon">grid_view</span>
+                </div>
+                <!-- Bottom (Green): Plant / Scraper -->
+                <div class="nexus-quad quad-bottom" onclick="app.handleInteraction(this, 'openContribute')" title="Plant Seed">
+                    <span class="material-symbols-rounded icon">energy_savings_leaf</span>
+                </div>
+                <!-- Left (Blue): Kids Wiki -->
+                <div class="nexus-quad quad-left" onclick="app.handleInteraction(this, 'searchWiki')" title="Kids Wiki Sync">
+                    <span class="material-symbols-rounded icon">menu_book</span>
+                </div>
+                
+                <!-- Center Core: Dice / Fly -->
+                <div class="nexus-core" id="dice-btn" onclick="app.handleInteraction(this, 'rollDice')" title="Quantum Jump">
+                    <span class="material-symbols-rounded icon">casino</span>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- 3. LIBRARY VIEW (Sahyogi Patch Grid) -->
+    <div id="view-library" class="library-view interactive">
+        <div class="lib-header">
+            <h1 class="lib-title">Global Archives</h1>
+            <button class="close-btn" onclick="app.closeLibrary()"><span class="material-symbols-rounded text-[28px]">close</span></button>
+        </div>
+        <div class="grid-container" id="grid-container">
+            <!-- Populated dynamically by JS -->
+        </div>
+    </div>
+
+    <!-- 4. CONTRIBUTE MODAL (Offline URL Scraper) -->
+    <div class="modal interactive" id="contribute-modal">
+        <div class="modal-card">
+            <div class="flex justify-between items-center mb-6 w-full">
+                <h2 class="font-display text-2xl font-bold text-white flex items-center gap-2">
+                    <span class="material-symbols-rounded text-primary">energy_savings_leaf</span> Plant Link
+                </h2>
+                <button class="bg-transparent border-none text-slate-400 hover:text-white cursor-pointer" onclick="app.closeModal()">
+                    <span class="material-symbols-rounded text-[28px]">close</span>
+                </button>
+            </div>
             
-            // Add slight randomness for the "discovery" feel
-            score += Math.random() * 2; 
-            return { ...item, score };
-        });
+            <p class="text-sm text-slate-400 mb-6">Drop a URL. The semantic engine will scan and map it to Earth 00 automatically.</p>
+            
+            <input type="url" id="c-url" class="modal-input" placeholder="https://..." required autocomplete="off">
+            <input type="text" id="c-title" class="modal-input" placeholder="Custom Title (Optional)" autocomplete="off">
+            
+            <button class="btn-solid" onclick="app.submitHarvestedSeed(event)" id="btn-submit">
+                <span class="material-symbols-rounded">eco</span> Auto-Plant Knowledge
+            </button>
+        </div>
+    </div>
 
-        // Sort by score and take top 12
-        scored.sort((a, b) => b.score - a.score);
-        return scored.slice(0, 12);
-    }
+    <!-- 5. SYNTHESIS MODAL (The Packaged AI Tile) -->
+    <div class="synthesis-modal" id="synthesis-modal">
+        <div class="synthesis-card">
+            <button class="close-btn" style="position: absolute; top: 20px; right: 20px;" onclick="app.closeSynthesis()">
+                <span class="material-symbols-rounded text-[24px]">close</span>
+            </button>
+            <h2 class="synthesis-title">AI Synthesis: <span id="syn-keyword">WATER</span></h2>
+            <p class="synthesis-fact" id="syn-fact">Loading cosmic resonance...</p>
+            
+            <div class="synthesis-grid">
+                <a href="#" id="syn-book" target="_blank" class="syn-item book">
+                    <span class="material-symbols-rounded">menu_book</span>
+                    <span>Book Link</span>
+                </a>
+                <a href="#" id="syn-product" target="_blank" class="syn-item product">
+                    <span class="material-symbols-rounded">shopping_cart</span>
+                    <span>Product Gear</span>
+                </a>
+                <a href="#" id="syn-event" target="_blank" class="syn-item event">
+                    <span class="material-symbols-rounded">event</span>
+                    <span>Global Event</span>
+                </a>
+                <a href="#" id="syn-community" target="_blank" class="syn-item community">
+                    <span class="material-symbols-rounded">diversity_3</span>
+                    <span>Community Node</span>
+                </a>
+            </div>
+            <p style="margin-top: 24px; font-size: 0.8rem; color: #64748b;">The dice rests for 8 minutes. Step into the sunlight. Rest in the synthesis.</p>
+        </div>
+    </div>
 
-    // ==========================================
-    // 3. UI RENDERING & JUMBLING TEXT EFFECT
-    // ==========================================
-    function jumbleText(elementId, finalText) {
-        const el = document.getElementById(elementId);
-        const chars = "!<>-_\\/[]{}—=+*^?~ba.che khel.o kri.shi";
-        let counter = 0;
-        const interval = setInterval(() => {
-            let scrambled = "";
-            for (let i = 0; i < finalText.length; i++) {
-                if (i < counter) {
-                    scrambled += finalText[i];
-                } else {
-                    scrambled += chars[Math.floor(Math.random() * chars.length)];
+    <!-- ========================================== -->
+    <!-- CORE ARCHITECTURE: EARTH 00 OS & THREE.JS  -->
+    <!-- ========================================== -->
+    <script>
+        // --- JUMBLE CODING ENGINE ---
+        class TextJumbler {
+            constructor(element, finalText) {
+                this.element = typeof element === 'string' ? document.getElementById(element) : element;
+                if(!this.element) return;
+                this.finalText = finalText;
+                this.chars = '!<>-_\\/[]{}—=+*^?#~'; 
+                this.frameRequest = null;
+                this.frame = 0;
+                this.queue = [];
+                for (let i = 0; i < this.finalText.length; i++) {
+                    const from = this.finalText[i] === ' ' ? ' ' : this.chars[Math.floor(Math.random() * this.chars.length)];
+                    const start = Math.floor(Math.random() * 20);
+                    const end = start + Math.floor(Math.random() * 30);
+                    this.queue.push({ from, to: this.finalText[i], start, end, char: from });
                 }
             }
-            el.innerHTML = scrambled;
-            counter += 1/3;
-            if (counter >= finalText.length) {
-                el.innerHTML = finalText;
-                clearInterval(interval);
+            update() {
+                if(!this.element) return;
+                let output = '';
+                let complete = 0;
+                for (let i = 0, n = this.queue.length; i < n; i++) {
+                    let { from, to, start, end, char } = this.queue[i];
+                    if (this.frame >= end) { complete++; output += to; }
+                    else if (this.frame >= start) {
+                        if (!char || Math.random() < 0.28) char = this.chars[Math.floor(Math.random() * this.chars.length)];
+                        output += `<span style="color:#fde047; opacity:0.8;">${char}</span>`;
+                    } else { output += from; }
+                }
+                this.element.innerHTML = output;
+                if (complete === this.queue.length) {
+                    this.element.innerHTML = this.finalText;
+                    cancelAnimationFrame(this.frameRequest);
+                } else {
+                    this.frameRequest = requestAnimationFrame(() => this.update());
+                    this.frame++;
+                }
             }
-        }, 40);
-    }
+            start() { this.frame = 0; this.update(); }
+        }
 
-    function renderGrid(items) {
-        const grid = document.getElementById('grid-container');
-        grid.innerHTML = '';
-        
-        items.forEach((item, index) => {
-            const tile = document.createElement('a');
-            tile.href = item.link;
-            tile.target = "_blank";
-            tile.className = 'tile';
-            tile.style.animationDelay = `${index * 0.05}s`;
+        // --- MAIN APP CONTROLLER ---
+        window.app = {
+            state: {
+                scene: null, camera: null, renderer: null, controls: null,
+                solarSystem: null, earthGroup: null, markerGroup: null,
+                htmlLabels: [],
+                activeLayer: 'GALAXY',
+                brandWords: ['khel.o', 'ba.che', 'be.zo', 'ba.ji', 'ka.li', 'khe.li', 'khil.a', 'kru.shi'],
+                brandIdx: 0,
+                nexusScale: 1.0,
+                isCoolingDown: false
+            },
+
+            // --- PERFECT 5W1H QUESTION TEMPLATES ---
+            QUESTION_TEMPLATES: [
+                "What is the physical architecture of {k}?",
+                "Why do we need {k} for planetary synchronization?",
+                "How can we prototype {k} without the Creator Ego?",
+                "Where can we find the silent roots of {k}?",
+                "When did we start disconnecting from {k}?",
+                "Who is witnessing the evolution of {k}?"
+            ],
+
+            // --- AI SYNTHESIS ENGINE (Maps keywords to packaged tiles) ---
+            SYNTHESIS_MAP: {
+                "water": {
+                    fact: "Only 3% of Earth's water is fresh, yet it sustains all terrestrial life. The architecture of hydration is the first engineering.",
+                    book: { title: "The Water Will Come", url: "https://www.amazon.com/s?k=the+water+will+come+jeff+goodell&tag=amazon0339f-21" },
+                    event: { title: "World Water Summit", url: "https://www.worldwatersummit.org/" },
+                    community: { title: "Water.org", url: "https://www.water.org/" },
+                    product: { title: "Rainwater Harvesting Barrel", url: "https://www.amazon.com/s?k=rainwater+harvesting+barrel&tag=amazon0339f-21" }
+                },
+                "soil": {
+                    fact: "Soil is a living matrix. A single teaspoon contains more microorganisms than there are people on Earth.",
+                    book: { title: "Dirt: The Ecstatic Skin of the Earth", url: "https://www.amazon.com/s?k=dirt+the+ecstatic+skin&tag=amazon0339f-21" },
+                    event: { title: "Global Soil Week", url: "https://www.globalsoilweek.org/" },
+                    community: { title: "Rodale Institute", url: "https://rodaleinstitute.org/" },
+                    product: { title: "Home Composting Kit", url: "https://www.amazon.com/s?k=composting+starter+kit&tag=amazon0339f-21" }
+                },
+                "energy": {
+                    fact: "The Sun provides more energy in one hour than the entire human race uses in a year.",
+                    book: { title: "Reinventing Fire", url: "https://www.amazon.com/s?k=reinventing+fire+amory+lovins&tag=amazon0339f-21" },
+                    event: { title: "Clean Energy Ministerial", url: "https://www.cleanenergyministerial.org/" },
+                    community: { title: "Rocky Mountain Institute", url: "https://rmi.org/" },
+                    product: { title: "Solar Power Bank 20000mAh", url: "https://www.amazon.com/s?k=solar+power+bank&tag=amazon0339f-21" }
+                },
+                "community": {
+                    fact: "Human beings are wired for connection. The strongest predictor of happiness is the quality of our social ties.",
+                    book: { title: "Bowling Alone", url: "https://www.amazon.com/s?k=bowling+alone+robert+putnam&tag=amazon0339f-21" },
+                    event: { title: "Skoll World Forum", url: "https://skoll.org/skoll-world-forum/" },
+                    community: { title: "Ashoka", url: "https://www.ashoka.org/" },
+                    product: { title: "Community Board Game", url: "https://www.amazon.com/s?k=community+building+board+game&tag=amazon0339f-21" }
+                },
+                "mind": {
+                    fact: "The human brain uses 20% of the body's energy, yet it is the only organ that can observe itself.",
+                    book: { title: "Thinking, Fast and Slow", url: "https://www.amazon.com/s?k=thinking+fast+and+slow&tag=amazon0339f-21" },
+                    event: { title: "Mind & Life Institute", url: "https://www.mindandlife.org/" },
+                    community: { title: "Art of Living", url: "https://www.artofliving.org/" },
+                    product: { title: "Meditation Cushion", url: "https://www.amazon.com/s?k=meditation+cushion+zafu&tag=amazon0339f-21" }
+                },
+                "nature": {
+                    fact: "Nature does not hurry, yet everything is accomplished. The Peepal tree releases oxygen 24/7 without asking for a performance review.",
+                    book: { title: "The Hidden Life of Trees", url: "https://www.amazon.com/s?k=the+hidden+life+of+trees&tag=amazon0339f-21" },
+                    event: { title: "UN Biodiversity Conference", url: "https://www.cbd.int/conferences/" },
+                    community: { title: "World Wildlife Fund", url: "https://www.wwf.org/" },
+                    product: { title: "Native Wildflower Seed Mix", url: "https://www.amazon.com/s?k=native+wildflower+seeds&tag=amazon0339f-21" }
+                },
+                "khel.o": {
+                    fact: "Play is the highest form of research. When the mind plays, it bypasses the ego and enters the flow of pure resonance.",
+                    book: { title: "Finite and Infinite Games", url: "https://www.amazon.com/s?k=finite+and+infinite+games&tag=amazon0339f-21" },
+                    event: { title: "Maker Faire", url: "https://makerfaire.com/" },
+                    community: { title: "Open Source Initiative", url: "https://opensource.org/" },
+                    product: { title: "Arduino Starter Kit", url: "https://www.amazon.com/s?k=arduino+starter+kit&tag=amazon0339f-21" }
+                },
+                "ba.che": {
+                    fact: "The seed contains the entire forest. To understand the ba.che (seed) is to understand the blueprint of existence.",
+                    book: { title: "Braiding Sweetgrass", url: "https://www.amazon.com/s?k=braiding+sweetgrass&tag=amazon0339f-21" },
+                    event: { title: "Seed Savers Exchange", url: "https://www.seedsavers.org/" },
+                    community: { title: "Navdanya", url: "https://navdanya.org/" },
+                    product: { title: "Organic Vegetable Seed Kit", url: "https://www.amazon.com/s?k=organic+vegetable+seeds&tag=amazon0339f-21" }
+                },
+                "kri.shi": {
+                    fact: "Agriculture is not just farming; it is the synchronization of soil, sun, and human intention.",
+                    book: { title: "One Straw Revolution", url: "https://www.amazon.com/s?k=the+one+straw+revolution&tag=amazon0339f-21" },
+                    event: { title: "Agriculture & Farmers Forum", url: "https://www.aff.org/" },
+                    community: { title: "Khan Academy (Agri)", url: "https://www.khanacademy.org/" },
+                    product: { title: "Home Hydroponic System", url: "https://www.amazon.com/s?k=hydroponic+starter+system&tag=amazon0339f-21" }
+                }
+            },
+
+            getSynthesis: function(keyword) {
+                if (this.SYNTHESIS_MAP[keyword]) return this.SYNTHESIS_MAP[keyword];
+                // Fallback for unknown keywords
+                return {
+                    fact: `The concept of ${keyword} is a node in the infinite mesh. Explore its connections.`,
+                    book: { title: `Books on ${keyword}`, url: `https://www.amazon.com/s?k=${keyword}&tag=amazon0339f-21` },
+                    event: { title: `Events for ${keyword}`, url: `https://www.eventbrite.com/d/online/${keyword}/` },
+                    community: { title: `Communities of ${keyword}`, url: `https://www.meetup.com/find/?keywords=${keyword}` },
+                    product: { title: `Gear for ${keyword}`, url: `https://www.amazon.com/s?k=${keyword}&tag=amazon0339f-21` }
+                };
+            },
+
+            // --- MASSIVE CURATED SEED DATA ---
+            KNOWLEDGE_BASE: [
+                { title: "Utkaleshwaram Vyavastha", url: "https://www.amazon.com/dp/B0GGX85FSB", type: "book", icon: "📘", desc: "A profound exploration into Earth systems and traditional organic structures.", tags: ["#earth", "#vyavastha"], lat: 20, lng: 80 },
+                { title: "Patrakaar – Journalism", url: "https://www.amazon.com/dp/B0GGQ6MJZW", type: "book", icon: "📘", desc: "Encyclopedia of Journalism and Truth.", tags: ["#journalism"], lat: 28, lng: 77 },
+                { title: "Rescue Bacche", url: "https://www.amazon.com/dp/B0G2FYBG7S", type: "book", icon: "📘", desc: "Who is Adivasi? Discovering roots.", tags: ["#adivasi"], lat: 22, lng: 82 },
+                { title: "Brahman Photosynthesis", url: "https://www.amazon.com/dp/B0GHLG7LSB", type: "book", icon: "🌿", desc: "Science & Mysticism.", tags: ["#science"], lat: 10, lng: 76 },
+                { title: "The Brahma Code", url: "https://www.amazon.com/dp/B0FXV32SGR", type: "book", icon: "🧠", desc: "Rewiring Your Reality.", tags: ["#reality"], lat: 30, lng: -90 },
+                { title: 'Earth of Nirarthakarthak', url: 'https://kids.miraheze.org/wiki/Nirarthakarthak', type: 'concept', icon: "🌌", desc: 'Where Silence Dances with Sound. A cosmic space.', tags: ['#philosophy'], lat: 20, lng: 75 },
+                { title: 'Econology', url: '#', type: 'concept', icon: "🌱", desc: 'Integrating economy and ecology for balanced planetary living.', tags: ['#sustainability'], lat: 40, lng: -100 },
+                { title: 'Kendriya Vidyalaya', url: 'https://www.kvsangathan.nic.in', type: 'org', icon: "🏫", desc: 'India\'s largest school chain.', tags: ['#education'], lat: 28.6, lng: 77.2 },
+                { title: 'Khan Academy', url: 'https://www.khanacademy.org', type: 'org', icon: "💻", desc: 'Free world-class education for anyone, anywhere.', tags: ['#online'], lat: 37, lng: -122 },
+                { title: 'World Wildlife Fund', url: 'https://www.wwf.org', type: 'org', icon: "🐼", desc: 'Conservation and biodiversity preservation.', tags: ['#conservation'], lat: -20, lng: 130 },
+                { title: 'IEEE', url: 'https://www.ieee.org', type: 'org', icon: "⚡", desc: 'Institute of Electrical and Electronics Engineers.', tags: ['#engineering'], lat: 40, lng: -74 },
+                { title: 'Solar Desalination Pod', url: '#', type: 'concept', icon: "☀️", desc: 'Open source hardware design for purifying ocean water.', tags: ['#water', '#solar'], lat: 10, lng: -20 },
+                { title: 'Earth Day Festival', url: '#', type: 'event', icon: "🌍", desc: 'Global celebration of our planet.', tags: ['#environment', '#community'], lat: 40.7, lng: -74.0 },
+                { title: 'Chipko Movement', url: '#', type: 'event', icon: "🌳", desc: 'Forest conservation movement.', tags: ['#ecology', '#india'], lat: 30.0, lng: 79.0 }
+            ],
+
+            init: function() {
+                this.init3DScene();
+                this.setupNexusDragAndZoom();
+                
+                const p = document.getElementById('chrome-nexus');
+                p.style.left = `calc(50% - 70px)`;
+                p.style.bottom = '40px';
+                p.style.transform = 'none';
+
+                setInterval(() => {
+                    this.state.brandIdx = (this.state.brandIdx + 1) % this.state.brandWords.length;
+                    new TextJumbler('dynamic-logo', this.state.brandWords[this.state.brandIdx]).start();
+                }, 4000);
+                
+                window.addEventListener('resize', () => {
+                    const w = window.innerWidth;
+                    const h = window.innerHeight;
+                    this.state.camera.aspect = w / h;
+                    this.state.camera.updateProjectionMatrix();
+                    this.state.renderer.setSize(w, h);
+                });
+
+                setTimeout(() => this.zoomTo('solar'), 1500);
+            },
+
+            showToast: function(msg) {
+                const container = document.getElementById('toast-container');
+                const toast = document.createElement('div');
+                toast.className = 'toast';
+                toast.innerHTML = `<span class="material-symbols-rounded text-white">eco</span> ${msg}`;
+                container.appendChild(toast);
+                setTimeout(() => {
+                    toast.style.animation = 'slideDown 0.3s ease reverse forwards';
+                    setTimeout(() => toast.remove(), 300);
+                }, 3000);
+            },
+
+            // --- 3D SCENE & SOLAR SYSTEM ENGINE ---
+            init3DScene: function() {
+                const container = document.getElementById('canvas-container');
+                
+                this.state.scene = new THREE.Scene();
+                this.state.scene.background = new THREE.Color(0x030508);
+
+                this.state.camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+                this.state.camera.position.set(0, 40, 100);
+
+                this.state.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+                this.state.renderer.setSize(window.innerWidth, window.innerHeight);
+                this.state.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+                container.appendChild(this.state.renderer.domElement);
+
+                this.state.controls = new THREE.OrbitControls(this.state.camera, this.state.renderer.domElement);
+                this.state.controls.enableDamping = true;
+                this.state.controls.dampingFactor = 0.05;
+                this.state.controls.minDistance = 1.0;
+                this.state.controls.maxDistance = 200;
+
+                const ambient = new THREE.AmbientLight(0x404060, 0.8);
+                this.state.scene.add(ambient);
+                const sunLight = new THREE.DirectionalLight(0xffeedd, 1.5);
+                sunLight.position.set(0, 0, 0); 
+                this.state.scene.add(sunLight);
+
+                this.buildSolarSystem();
+                this.buildEarth();
+                this.populateEarthMarkers();
+
+                const animate = () => {
+                    requestAnimationFrame(animate);
+
+                    this.state.solarSystem.children.forEach(child => {
+                        if (child.userData && child.userData.distance) {
+                            const d = child.userData;
+                            d.angle += 0.005 * d.speed;
+                            child.position.x = d.distance * Math.cos(d.angle);
+                            child.position.z = d.distance * Math.sin(d.angle);
+                            child.rotation.y += 0.01;
+                        }
+                    });
+
+                    if(this.state.earthGroup) {
+                        this.state.earthGroup.rotation.y += 0.001;
+                    }
+
+                    this.updateHTML_Labels();
+                    this.state.controls.update();
+                    this.state.renderer.render(this.state.scene, this.state.camera);
+                };
+                animate();
+            },
+
+            buildSolarSystem: function() {
+                this.state.solarSystem = new THREE.Group();
+                this.state.scene.add(this.state.solarSystem);
+
+                const sunGeo = new THREE.SphereGeometry(2.0, 32, 32);
+                const sunMat = new THREE.MeshBasicMaterial({ color: 0xffaa00 });
+                const sun = new THREE.Mesh(sunGeo, sunMat);
+                this.state.solarSystem.add(sun);
+
+                const glowMat = new THREE.MeshBasicMaterial({ color: 0xff8800, transparent: true, opacity: 0.3, blending: THREE.AdditiveBlending });
+                const sunGlow = new THREE.Mesh(new THREE.SphereGeometry(2.4, 32, 32), glowMat);
+                this.state.solarSystem.add(sunGlow);
+
+                const planets = [
+                    { name: 'Mercury', r: 0.2, d: 4.0, c: 0xaaaaaa, s: 0.04 },
+                    { name: 'Venus', r: 0.3, d: 6.0, c: 0xffcc88, s: 0.02 },
+                    { name: 'Earth', r: 0.4, d: 9.0, c: 0x4488ff, s: 0.015, isEarthObj: true }, 
+                    { name: 'Mars', r: 0.25, d: 12.0, c: 0xff4422, s: 0.012 },
+                    { name: 'Jupiter', r: 0.8, d: 17.0, c: 0xffaa55, s: 0.008 },
+                    { name: 'Saturn', r: 0.7, d: 23.0, c: 0xffdd99, s: 0.006, hasRing: true }
+                ];
+
+                planets.forEach(p => {
+                    const pts = [];
+                    for(let i=0; i<=64; i++) {
+                        const a = (i/64) * Math.PI * 2;
+                        pts.push(p.d * Math.cos(a), 0, p.d * Math.sin(a));
+                    }
+                    const lineGeo = new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute(pts, 3));
+                    const lineMat = new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.1 });
+                    this.state.solarSystem.add(new THREE.Line(lineGeo, lineMat));
+
+                    if(p.isEarthObj) {
+                        this.state.earthPivot = new THREE.Group();
+                        this.state.earthPivot.userData = { angle: Math.random() * Math.PI * 2, distance: p.d, speed: p.s };
+                        this.state.solarSystem.add(this.state.earthPivot);
+                    } else {
+                        const geo = new THREE.SphereGeometry(p.r, 32, 32);
+                        const mat = new THREE.MeshStandardMaterial({ color: p.c, roughness: 0.8 });
+                        const mesh = new THREE.Mesh(geo, mat);
+                        
+                        if(p.hasRing) {
+                            const rGeo = new THREE.RingGeometry(p.r * 1.4, p.r * 2.2, 32);
+                            const rMat = new THREE.MeshBasicMaterial({ color: 0xffdd99, side: THREE.DoubleSide, transparent: true, opacity: 0.6 });
+                            const ring = new THREE.Mesh(rGeo, rMat);
+                            ring.rotation.x = Math.PI / 2.5;
+                            mesh.add(ring);
+                        }
+
+                        mesh.userData = { angle: Math.random() * Math.PI * 2, distance: p.d, speed: p.s, name: p.name };
+                        this.state.solarSystem.add(mesh);
+                        this.createHTMLLabel(mesh, p.name, 'planet-label');
+                    }
+                });
+            },
+
+            buildEarth: function() {
+                this.state.earthGroup = new THREE.Group();
+                if(this.state.earthPivot) {
+                    this.state.earthPivot.add(this.state.earthGroup);
+                } else {
+                    this.state.scene.add(this.state.earthGroup);
+                }
+
+                const canvas = document.createElement('canvas');
+                canvas.width = 1024; canvas.height = 512;
+                const ctx = canvas.getContext('2d');
+                
+                const grad = ctx.createLinearGradient(0,0,0,512);
+                grad.addColorStop(0, '#0a1a3a'); grad.addColorStop(0.5, '#1a3a6a'); grad.addColorStop(1, '#0a1a3a');
+                ctx.fillStyle = grad; ctx.fillRect(0,0,1024,512);
+                
+                ctx.fillStyle = '#1f6a3a';
+                const continents = [[200,180,80,60], [150,220,60,80], [450,150,100,70], [700,180,60,50], [900,150,40,40], [550,300,50,40]];
+                continents.forEach(c => {
+                    ctx.beginPath(); ctx.ellipse(c[0]+c[2]/2, c[1]+c[3]/2, c[2]/2, c[3]/2, 0, 0, Math.PI*2); ctx.fill();
+                    for(let i=0; i<4; i++) {
+                        ctx.beginPath(); ctx.arc(c[0]+c[2]/2+(Math.random()-0.5)*c[2], c[1]+c[3]/2+(Math.random()-0.5)*c[3], 15+Math.random()*20, 0, Math.PI*2); ctx.fill();
+                    }
+                });
+
+                const earthGeo = new THREE.SphereGeometry(1.2, 64, 64);
+                const earthMat = new THREE.MeshPhongMaterial({ map: new THREE.CanvasTexture(canvas), specular: 0x222222, shininess: 10 });
+                const earthMesh = new THREE.Mesh(earthGeo, earthMat);
+                this.state.earthGroup.add(earthMesh);
+
+                const atmoGeo = new THREE.SphereGeometry(1.25, 32, 32);
+                const atmoMat = new THREE.MeshBasicMaterial({ color: 0x4488ff, transparent: true, opacity: 0.15, blending: THREE.AdditiveBlending });
+                this.state.earthGroup.add(new THREE.Mesh(atmoGeo, atmoMat));
+
+                this.state.markerGroup = new THREE.Group();
+                this.state.earthGroup.add(this.state.markerGroup);
+                
+                this.createHTMLLabel(earthMesh, 'Mother Earth', 'planet-label');
+            },
+
+            latLngToVector3: function(lat, lng, radius) {
+                const phi = (90 - lat) * (Math.PI / 180);
+                const theta = (lng + 180) * (Math.PI / 180);
+                return new THREE.Vector3(
+                    -(radius * Math.sin(phi) * Math.cos(theta)),
+                    radius * Math.cos(phi),
+                    radius * Math.sin(phi) * Math.sin(theta)
+                );
+            },
+
+            populateEarthMarkers: function() {
+                const colorMap = { org: 0x3b82f6, event: 0xf59e0b, library: 0x10b981, concept: 0xc084fc, book: 0xfde047 };
+                
+                this.KNOWLEDGE_BASE.forEach(item => {
+                    const pos = this.latLngToVector3(item.lat, item.lng, 1.25);
+                    const color = colorMap[item.type] || 0x44dd88;
+                    
+                    const geo = new THREE.OctahedronGeometry(0.06);
+                    const mat = new THREE.MeshBasicMaterial({ color: color });
+                    const mesh = new THREE.Mesh(geo, mat);
+                    
+                    mesh.position.copy(pos);
+                    mesh.lookAt(new THREE.Vector3(0,0,0));
+                    
+                    mesh.userData = { isMarker: true, data: item };
+                    this.state.markerGroup.add(mesh);
+
+                    this.createHTMLLabel(mesh, item.icon + ' ' + item.title.substring(0,15), 'marker-label', true);
+                });
+            },
+
+            createHTMLLabel: function(mesh, text, className, isOnEarth = false) {
+                const div = document.createElement('div');
+                div.className = `html-label ${className}`;
+                div.innerText = text;
+                document.getElementById('labels-container').appendChild(div);
+                this.state.htmlLabels.push({ mesh, el: div, isOnEarth });
+            },
+
+            updateHTML_Labels: function() {
+                const tempV = new THREE.Vector3();
+                this.state.htmlLabels.forEach(label => {
+                    label.mesh.getWorldPosition(tempV);
+                    
+                    tempV.project(this.state.camera);
+                    if (tempV.z > 1 || tempV.z < -1) {
+                        label.el.style.opacity = 0;
+                        return;
+                    }
+
+                    if(label.isOnEarth && this.state.earthGroup) {
+                        const earthWorldPos = new THREE.Vector3();
+                        this.state.earthGroup.getWorldPosition(earthWorldPos);
+                        
+                        const meshWorldPos = new THREE.Vector3();
+                        label.mesh.getWorldPosition(meshWorldPos);
+
+                        const dirToMesh = meshWorldPos.clone().sub(earthWorldPos).normalize();
+                        const dirToCam = this.state.camera.position.clone().sub(earthWorldPos).normalize();
+                        
+                        if (dirToMesh.dot(dirToCam) < 0.1) {
+                            label.el.style.opacity = 0;
+                            return;
+                        }
+                    }
+
+                    const x = (tempV.x * .5 + .5) * window.innerWidth;
+                    const y = (tempV.y * -.5 + .5) * window.innerHeight;
+                    
+                    label.el.style.opacity = 1;
+                    label.el.style.transform = `translate(-50%, -50%) translate(${x}px, ${y}px)`;
+                });
+            },
+
+            zoomTo: function(level) {
+                let targetPos, lookAtTarget;
+
+                if(level === 'galaxy') {
+                    targetPos = { x: 0, y: 40, z: 100 };
+                    lookAtTarget = new THREE.Vector3(0,0,0);
+                    this.state.activeLayer = 'GALAXY';
+                    document.getElementById('layer-indicator').innerText = '🌌 Galaxy';
+                } 
+                else if (level === 'solar') {
+                    targetPos = { x: 0, y: 15, z: 35 };
+                    lookAtTarget = new THREE.Vector3(0,0,0);
+                    this.state.activeLayer = 'SOLAR SYSTEM';
+                    document.getElementById('layer-indicator').innerText = '☀️ Solar System';
+                }
+                else if (level === 'earth') {
+                    const earthWorldPos = new THREE.Vector3();
+                    if(this.state.earthPivot) {
+                        this.state.earthGroup.children[0].getWorldPosition(earthWorldPos);
+                    }
+                    targetPos = { x: earthWorldPos.x + 0, y: earthWorldPos.y + 1, z: earthWorldPos.z + 5 };
+                    lookAtTarget = earthWorldPos;
+                    this.state.activeLayer = 'EARTH';
+                    document.getElementById('layer-indicator').innerText = '🌍 Earth Matrix';
+                }
+
+                if(targetPos && lookAtTarget) {
+                    gsap.to(this.state.camera.position, {
+                        x: targetPos.x, y: targetPos.y, z: targetPos.z,
+                        duration: 2, ease: "power3.inOut"
+                    });
+                    gsap.to(this.state.controls.target, {
+                        x: lookAtTarget.x, y: lookAtTarget.y, z: lookAtTarget.z,
+                        duration: 2, ease: "power3.inOut"
+                    });
+                }
+            },
+
+            setupNexusDragAndZoom: function() {
+                const el = document.getElementById('chrome-nexus');
+                let isDragging = false;
+                let startX, startY, initialLeft, initialTop;
+                let initialDist = 0;
+
+                el.addEventListener('touchstart', (e) => {
+                    if (e.touches.length === 2) {
+                        isDragging = false;
+                        initialDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+                    }
+                }, { passive: true });
+
+                el.addEventListener('touchmove', (e) => {
+                    if (e.touches.length === 2 && initialDist > 0) {
+                        e.preventDefault();
+                        const dist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+                        const ratio = dist / initialDist;
+                        this.state.nexusScale = Math.max(0.5, Math.min(2.5, this.state.nexusScale * ratio));
+                        el.style.setProperty('--nexus-scale', this.state.nexusScale);
+                        initialDist = dist;
+                    }
+                }, { passive: false });
+
+                el.addEventListener('wheel', (e) => {
+                    e.preventDefault();
+                    const delta = e.deltaY < 0 ? 0.05 : -0.05;
+                    this.state.nexusScale = Math.max(0.5, Math.min(2.5, this.state.nexusScale + delta));
+                    el.style.setProperty('--nexus-scale', this.state.nexusScale);
+                }, { passive: false });
+
+                const dragStart = (e) => {
+                    if(e.target.closest('.nexus-segment') || e.target.closest('.nexus-core') || e.touches?.length === 2) return;
+                    isDragging = false;
+                    
+                    if (e.type === 'touchstart') {
+                        startX = e.touches[0].clientX; startY = e.touches[0].clientY;
+                    } else {
+                        startX = e.clientX; startY = e.clientY;
+                    }
+
+                    const rect = el.getBoundingClientRect();
+                    initialLeft = rect.left; 
+                    initialTop = rect.top;
+
+                    el.style.left = initialLeft + 'px'; el.style.top = initialTop + 'px';
+                    el.style.bottom = 'auto'; el.style.right = 'auto'; el.style.transform = 'none';
+
+                    document.addEventListener('mousemove', dragMove, {passive: false});
+                    document.addEventListener('touchmove', dragMove, {passive: false});
+                    document.addEventListener('mouseup', dragEnd);
+                    document.addEventListener('touchend', dragEnd);
+                };
+
+                const dragMove = (e) => {
+                    if(e.touches?.length === 2) return;
+                    let clientX = e.type === 'touchmove' ? e.touches[0].clientX : e.clientX;
+                    let clientY = e.type === 'touchmove' ? e.touches[0].clientY : e.clientY;
+                    
+                    if (Math.abs(clientX - startX) > 6 || Math.abs(clientY - startY) > 6) isDragging = true;
+
+                    if (isDragging) {
+                        e.preventDefault(); 
+                        let newLeft = initialLeft + (clientX - startX);
+                        let newTop = initialTop + (clientY - startY);
+                        
+                        const maxX = window.innerWidth - el.offsetWidth; const maxY = window.innerHeight - el.offsetHeight;
+                        newLeft = Math.max(0, Math.min(newLeft, maxX)); newTop = Math.max(0, Math.min(newTop, maxY));
+                        el.style.left = newLeft + 'px'; el.style.top = newTop + 'px';
+                    }
+                };
+
+                const dragEnd = (e) => {
+                    document.removeEventListener('mousemove', dragMove); document.removeEventListener('touchmove', dragMove);
+                    document.removeEventListener('mouseup', dragEnd); document.removeEventListener('touchend', dragEnd);
+                    if (isDragging) {
+                        el.setAttribute('data-dragged', 'true');
+                        setTimeout(() => el.removeAttribute('data-dragged'), 100);
+                        el.style.transform = `scale(var(--nexus-scale))`;
+                    }
+                };
+
+                el.addEventListener('mousedown', dragStart, {passive: false});
+                el.addEventListener('touchstart', dragStart, {passive: false});
+            },
+
+            handleInteraction: function(el, actionName) {
+                const nexus = document.getElementById('chrome-nexus');
+                if(nexus.getAttribute('data-dragged') === 'true') return;
+                if(typeof this[actionName] === 'function') this[actionName]();
+            },
+
+            toggleSearch: function() {
+                const wrapper = document.getElementById('search-popout');
+                wrapper.classList.toggle('active');
+                if(wrapper.classList.contains('active')) document.getElementById('nexus-search').focus();
+            },
+
+            executeSearch: function() {
+                const val = document.getElementById('nexus-search').value.trim();
+                if(!val) return;
+                this.showToast(`🔍 Searching Earth Matrix for "${val}"...`);
+                this.zoomTo('earth');
+                setTimeout(() => { this.openLibrary(); }, 1000);
+                this.toggleSearch(); 
+            },
+
+            searchWiki: async function() {
+                this.showToast('🧠 Querying Kids Miraheze Wiki...');
+                setTimeout(() => {
+                    window.open('https://kids.miraheze.org/wiki/Special:AllPages', '_blank');
+                }, 800);
+            },
+
+            openLibrary: function() {
+                document.getElementById('view-library').classList.add('active');
+                this.renderLibrary();
+            },
             
-            tile.innerHTML = `
-                <div class="tile-header">
-                    <span class="tile-icon">${item.icon}</span>
-                    <span class="tile-type ${item.type}">${item.type}</span>
-                </div>
-                <div class="tile-title">${item.title}</div>
-                <div class="tile-action">
-                    Explore Node <span class="material-symbols-rounded" style="font-size:16px;">arrow_forward</span>
-                </div>
-            `;
-            grid.appendChild(tile);
-        });
-    }
+            closeLibrary: function() {
+                document.getElementById('view-library').classList.remove('active');
+            },
 
-    // ==========================================
-    // 4. THE 5W1H DICE ROLLER
-    // ==========================================
-    function rollDice() {
-        const fab = document.getElementById('fab-dice');
-        fab.classList.add('rolling');
-        
-        const intents = ["What", "Why", "Where", "When", "Who", "How"];
-        const keywords = ["water", "soil", "energy", "community", "mind", "nature", "khel.o", "ba.che", "kri.shi"];
-        
-        const randomIntent = intents[Math.floor(Math.random() * intents.length)];
-        const randomKeyword = keywords[Math.floor(Math.random() * keywords.length)];
-        
-        // Jumble the intent display
-        jumbleText('intent-display', `${randomIntent} do we ${randomKeyword}?`);
-        
-        // Get matching items and render
-        const matches = getMatchingItems(randomIntent, randomKeyword);
-        
-        setTimeout(() => {
-            renderGrid(matches);
-            fab.classList.remove('rolling');
-        }, 800);
-    }
+            renderLibrary: function() {
+                const grid = document.getElementById('grid-container');
+                const data = this.KNOWLEDGE_BASE;
 
-    // ==========================================
-    // 5. INITIAL LOAD
-    // ==========================================
-    window.onload = () => {
-        // Jumble the logo on load
-        jumbleText('logo-text', 'KHEL.O');
-        
-        // Load initial random set
-        const initialItems = [...DB].sort(() => 0.5 - Math.random()).slice(0, 12);
-        renderGrid(initialItems);
-    };
-</script>
+                grid.innerHTML = data.map((item, index) => {
+                    const delay = index * 50;
+                    const tagsHtml = item.tags ? item.tags.map(t => `<span class="text-xs bg-white/10 px-2 py-1 rounded-full text-slate-300">${t}</span>`).join('') : '';
+                    
+                    return `
+                        <a href="${item.url}" target="_blank" class="tile" style="animation-delay: ${delay}ms;">
+                            <div class="tile-header">
+                                <span class="tile-icon">${item.icon}</span>
+                                <span class="tile-type ${item.type}">${item.type}</span>
+                            </div>
+                            <div class="tile-title">${item.title}</div>
+                            <div class="tile-desc">${item.desc}</div>
+                            <div class="flex flex-wrap gap-1 mt-2">${tagsHtml}</div>
+                            <div class="tile-action">
+                                Explore Node <span class="material-symbols-rounded" style="font-size:16px;">arrow_forward</span>
+                            </div>
+                        </a>
+                    `;
+                }).join('');
+                
+                grid.querySelectorAll('.tile').forEach(t => {
+                    t.classList.remove('visible');
+                    void t.offsetWidth; 
+                    t.classList.add('visible');
+                });
+            },
+
+            // --- 5W1H DICE & SYNTHESIS ENGINE ---
+            rollDice: function() {
+                if (this.state.isCoolingDown) return;
+                
+                const btn = document.getElementById('dice-btn');
+                const display = document.getElementById('intent-display');
+                
+                btn.classList.add('rolling');
+                display.classList.add('show');
+
+                const keywords = ["water", "soil", "energy", "community", "mind", "nature", "khel.o", "ba.che", "kri.shi"];
+                let finalKeyword = keywords[Math.floor(Math.random() * keywords.length)];
+                
+                let count = 0;
+                const roulette = setInterval(() => {
+                    count++;
+                    const k = keywords[Math.floor(Math.random() * keywords.length)];
+                    const q = this.QUESTION_TEMPLATES[Math.floor(Math.random() * this.QUESTION_TEMPLATES.length)].replace('{k}', k);
+                    display.innerHTML = q;
+                    
+                    if(count > 15) {
+                        clearInterval(roulette);
+                        btn.classList.remove('rolling');
+                        
+                        const finalQ = this.QUESTION_TEMPLATES[Math.floor(Math.random() * this.QUESTION_TEMPLATES.length)].replace('{k}', finalKeyword);
+                        display.innerHTML = finalQ;
+                        
+                        // Generate and show the Synthesis Tile
+                        this.generateSynthesis(finalKeyword);
+                        
+                        // Start 8-minute cooldown
+                        this.state.isCoolingDown = true;
+                        this.startCooldown();
+                        
+                        setTimeout(() => display.classList.remove('show'), 4000);
+                    }
+                }, 50);
+            },
+
+            generateSynthesis: function(keyword) {
+                const data = this.getSynthesis(keyword);
+                
+                document.getElementById('syn-keyword').innerText = keyword.toUpperCase();
+                document.getElementById('syn-fact').innerText = data.fact;
+                
+                document.getElementById('syn-book').href = data.book.url;
+                document.getElementById('syn-book').querySelector('span:last-child').innerText = data.book.title;
+                
+                document.getElementById('syn-product').href = data.product.url;
+                document.getElementById('syn-product').querySelector('span:last-child').innerText = data.product.title;
+                
+                document.getElementById('syn-event').href = data.event.url;
+                document.getElementById('syn-event').querySelector('span:last-child').innerText = data.event.title;
+                
+                document.getElementById('syn-community').href = data.community.url;
+                document.getElementById('syn-community').querySelector('span:last-child').innerText = data.community.title;
+                
+                document.getElementById('synthesis-modal').classList.add('active');
+                
+                this.zoomTo('earth');
+            },
+
+            closeSynthesis: function() {
+                document.getElementById('synthesis-modal').classList.remove('active');
+            },
+
+            startCooldown: function() {
+                const btn = document.getElementById('dice-btn');
+                let seconds = 8 * 60; // 8 minutes
+                
+                btn.style.pointerEvents = 'none';
+                btn.style.opacity = '0.6';
+                btn.style.cursor = 'not-allowed';
+                
+                this.cooldownInterval = setInterval(() => {
+                    seconds--;
+                    const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+                    const s = (seconds % 60).toString().padStart(2, '0');
+                    btn.innerHTML = `<span style="font-size: 14px; font-weight: bold; color: #fff; transform: rotate(-45deg); display: block;">${m}:${s}</span>`;
+                    
+                    if (seconds <= 0) {
+                        clearInterval(this.cooldownInterval);
+                        btn.style.pointerEvents = 'auto';
+                        btn.style.opacity = '1';
+                        btn.style.cursor = 'pointer';
+                        btn.innerHTML = `<span class="material-symbols-rounded icon">casino</span>`;
+                        this.state.isCoolingDown = false;
+                        this.showToast("The mind is rested. Roll again.");
+                    }
+                }, 1000);
+            },
+
+            // --- SCRAPER & CONTRIBUTE (Offline Engine) ---
+            openContribute: function() { document.getElementById('contribute-modal').classList.add('active'); },
+            closeModal: function() { document.getElementById('contribute-modal').classList.remove('active'); },
+            
+            submitHarvestedSeed: async function(e) {
+                e.preventDefault();
+                const url = document.getElementById('c-url').value.trim();
+                const title = document.getElementById('c-title').value.trim() || 'New Organic Node';
+                if(!url) return this.showToast('Please provide a URL.');
+                
+                const btn = document.getElementById('btn-submit');
+                const orig = btn.innerHTML;
+                btn.innerHTML = `<span class="material-symbols-rounded animate-spin">sync</span> Validating Connection...`;
+                
+                try {
+                    setTimeout(() => {
+                        this.closeModal();
+                        
+                        const newItem = { title, url, category: 'User Seed', type: 'concept', icon: '🍃', desc: 'A globally planted seed by a user.', tags: ['#new', '#ecology'] };
+                        this.KNOWLEDGE_BASE.push(newItem);
+                        
+                        const lat = (Math.random() * 140 - 70);
+                        const lng = (Math.random() * 360 - 180);
+                        const pos = this.latLngToVector3(lat, lng, 1.25);
+                        
+                        const geo = new THREE.OctahedronGeometry(0.06);
+                        const mat = new THREE.MeshBasicMaterial({ color: 0xa7f3d0 });
+                        const mesh = new THREE.Mesh(geo, mat);
+                        mesh.position.copy(pos);
+                        mesh.lookAt(new THREE.Vector3(0,0,0));
+                        mesh.userData = { isMarker: true, data: newItem };
+                        
+                        if(this.state.markerGroup) this.state.markerGroup.add(mesh);
+                        this.createHTMLLabel(mesh, '🍃 ' + title.substring(0,12), 'marker-label', true);
+
+                        this.showToast("Seed planted on Earth Matrix!");
+                        btn.innerHTML = orig;
+                    }, 1500);
+                } catch(err) { this.showToast("Failed to plant."); btn.innerHTML = orig;} 
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', () => window.app.init());
+    </script>
 </body>
 </html>
