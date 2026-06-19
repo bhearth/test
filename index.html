@@ -4,165 +4,383 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>Khel.o | The Sahyogi Patch</title>
+<!-- Fonts & Icons -->
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,1,0" />
 <style>
-    :root { --bg: #0a0a0f; --surface: rgba(255,255,255,0.05); --accent: #fbbf24; --text: #fff; }
-    * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui, -apple-system, sans-serif; }
-    body { background: var(--bg); color: var(--text); height: 100vh; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; perspective: 1500px; }
-
-    /* Jumbling Logo */
-    .logo { position: absolute; top: 20px; left: 20px; font-size: 1.5rem; font-weight: 800; color: var(--accent); letter-spacing: 2px; text-shadow: 0 0 20px rgba(251, 191, 36, 0.5); }
-
-    /* 3D Dodecahedron / Cylinder Wheel */
-    .wheel-container { width: 100%; height: 60vh; display: flex; align-items: center; justify-content: center; position: relative; }
-    .wheel { width: 200px; height: 260px; position: relative; transform-style: preserve-3d; transform: rotateX(-10deg) rotateY(0deg); transition: transform 1.2s cubic-bezier(0.25, 1, 0.5, 1); }
-    
-    .face {
-        position: absolute; width: 180px; height: 240px; left: 10px; top: 10px;
-        background: var(--surface); backdrop-filter: blur(15px);
-        border: 1px solid rgba(255,255,255,0.1); border-radius: 24px;
-        display: flex; flex-direction: column; align-items: center; justify-content: center;
-        padding: 20px; text-align: center; backface-visibility: hidden;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.5); transition: all 0.3s;
+    :root {
+        --bg: #050508;
+        --surface: rgba(255, 255, 255, 0.04);
+        --glass: rgba(255, 255, 255, 0.08);
+        --accent: #fbbf24;
+        --text: #f8fafc;
+        --muted: #94a3b8;
+        --radius: 20px;
     }
-    .face:hover { border-color: var(--accent); transform: scale(1.05); }
-    
-    /* 12 Faces Geometry (360 / 12 = 30deg, Radius = 330px) */
-    .face:nth-child(1)  { transform: rotateY(0deg) translateZ(330px); }
-    .face:nth-child(2)  { transform: rotateY(30deg) translateZ(330px); }
-    .face:nth-child(3)  { transform: rotateY(60deg) translateZ(330px); }
-    .face:nth-child(4)  { transform: rotateY(90deg) translateZ(330px); }
-    .face:nth-child(5)  { transform: rotateY(120deg) translateZ(330px); }
-    .face:nth-child(6)  { transform: rotateY(150deg) translateZ(330px); }
-    .face:nth-child(7)  { transform: rotateY(180deg) translateZ(330px); }
-    .face:nth-child(8)  { transform: rotateY(210deg) translateZ(330px); }
-    .face:nth-child(9)  { transform: rotateY(240deg) translateZ(330px); }
-    .face:nth-child(10) { transform: rotateY(270deg) translateZ(330px); }
-    .face:nth-child(11) { transform: rotateY(300deg) translateZ(330px); }
-    .face:nth-child(12) { transform: rotateY(330deg) translateZ(330px); }
-
-    .tile-icon { font-size: 3rem; margin-bottom: 10px; }
-    .tile-type { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; color: var(--accent); margin-bottom: 8px; font-weight: 700; }
-    .tile-title { font-size: 1rem; font-weight: 600; line-height: 1.3; margin-bottom: 15px; flex-grow: 1; display: flex; align-items: center; }
-    .tile-link { background: rgba(255,255,255,0.1); padding: 8px 16px; border-radius: 20px; color: #fff; text-decoration: none; font-size: 0.8rem; font-weight: 600; width: 100%; text-align: center; transition: 0.2s; }
-    .tile-link:hover { background: var(--accent); color: #000; }
-
-    /* 5W1H Dice */
-    .dice-btn {
-        position: absolute; bottom: 40px; width: 70px; height: 70px; border-radius: 50%;
-        background: linear-gradient(135deg, #fbbf24, #f59e0b); border: none;
-        color: #000; font-size: 2rem; cursor: pointer; box-shadow: 0 10px 30px rgba(251, 191, 36, 0.4);
-        display: flex; align-items: center; justify-content: center; transition: 0.3s;
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body {
+        font-family: 'Inter', sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+        overflow-x: hidden;
+        display: flex;
+        flex-direction: column;
     }
-    .dice-btn:active { transform: scale(0.9); }
-    .dice-btn.rolling { animation: roll 0.6s linear infinite; }
-    @keyframes roll { 100% { transform: rotate(360deg); } }
 
-    /* Voice & Status Overlay */
-    .status { position: absolute; bottom: 120px; background: rgba(0,0,0,0.6); padding: 10px 20px; border-radius: 30px; font-size: 0.9rem; opacity: 0; transition: 0.5s; max-width: 80%; text-align: center; backdrop-filter: blur(10px); }
-    .status.show { opacity: 1; }
+    /* --- HEADER & ADMIN LINK --- */
+    header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px 24px;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        background: rgba(5, 5, 8, 0.8);
+        backdrop-filter: blur(20px);
+        border-bottom: 1px solid var(--glass);
+    }
+    .logo {
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: var(--accent);
+        letter-spacing: 2px;
+        text-shadow: 0 0 20px rgba(251, 191, 36, 0.4);
+    }
+    .admin-link {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 18px;
+        background: var(--surface);
+        border: 1px solid var(--glass);
+        border-radius: 40px;
+        color: var(--text);
+        text-decoration: none;
+        font-size: 0.9rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        backdrop-filter: blur(10px);
+    }
+    .admin-link:hover {
+        background: var(--accent);
+        color: #000;
+        border-color: var(--accent);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(251, 191, 36, 0.3);
+    }
+    .admin-link .material-symbols-rounded { font-size: 20px; }
 
-    /* Embed Snippet */
-    .embed-btn { position: absolute; top: 20px; right: 20px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); padding: 8px 16px; border-radius: 20px; color: #fff; font-size: 0.8rem; cursor: pointer; }
+    /* --- MAIN CONTENT --- */
+    main {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 40px 20px 120px;
+    }
+    .intent-display {
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 1.5rem;
+        font-weight: 600;
+        text-align: center;
+        margin-bottom: 40px;
+        min-height: 40px;
+        color: var(--muted);
+        letter-spacing: 1px;
+    }
+    .intent-display span.highlight { color: var(--accent); }
+
+    /* --- THE 12-TILE GRID --- */
+    .grid-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 20px;
+        width: 100%;
+        max-width: 1200px;
+    }
+    .tile {
+        background: var(--surface);
+        border: 1px solid var(--glass);
+        border-radius: var(--radius);
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        text-decoration: none;
+        color: inherit;
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        position: relative;
+        overflow: hidden;
+        opacity: 0;
+        transform: translateY(20px);
+        animation: fadeInUp 0.5s forwards;
+    }
+    .tile:hover {
+        transform: translateY(-6px);
+        border-color: rgba(255,255,255,0.2);
+        background: rgba(255, 255, 255, 0.06);
+        box-shadow: 0 15px 30px rgba(0,0,0,0.5);
+    }
+    .tile::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 3px;
+        background: var(--accent);
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+    .tile:hover::before { opacity: 1; }
+
+    .tile-header { display: flex; justify-content: space-between; align-items: center; }
+    .tile-icon { font-size: 2.5rem; }
+    .tile-type {
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        padding: 4px 10px;
+        border-radius: 20px;
+        background: rgba(251, 191, 36, 0.15);
+        color: var(--accent);
+    }
+    .tile-type.book { background: rgba(59, 130, 246, 0.15); color: #60a5fa; }
+    .tile-type.event { background: rgba(16, 185, 129, 0.15); color: #34d399; }
+    .tile-type.fact { background: rgba(168, 85, 247, 0.15); color: #c084fc; }
+
+    .tile-title { font-size: 1.1rem; font-weight: 600; line-height: 1.4; }
+    .tile-action {
+        margin-top: auto;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--muted);
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        transition: color 0.2s;
+    }
+    .tile:hover .tile-action { color: var(--accent); }
+
+    @keyframes fadeInUp {
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* --- FLOATING 5W1H DICE --- */
+    .fab-dice {
+        position: fixed;
+        bottom: 32px;
+        right: 32px;
+        width: 72px;
+        height: 72px;
+        border-radius: 50%;
+        border: none;
+        background: linear-gradient(135deg, #fbbf24, #f59e0b);
+        color: #000;
+        font-size: 2rem;
+        cursor: pointer;
+        box-shadow: 0 10px 30px rgba(251, 191, 36, 0.4);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        z-index: 50;
+    }
+    .fab-dice:hover { transform: scale(1.1) rotate(15deg); }
+    .fab-dice:active { transform: scale(0.95); }
+    .fab-dice.rolling .material-symbols-rounded { animation: spin 0.5s linear infinite; }
+    @keyframes spin { 100% { transform: rotate(360deg); } }
+
+    /* --- MOBILE OPTIMIZATION --- */
+    @media (max-width: 600px) {
+        header { padding: 16px; }
+        .logo { font-size: 1.4rem; }
+        .admin-link span:last-child { display: none; } /* Hide text on mobile, keep icon */
+        .admin-link { padding: 10px; }
+        .intent-display { font-size: 1.2rem; }
+        .grid-container { grid-template-columns: 1fr; }
+        .fab-dice { width: 64px; height: 64px; bottom: 24px; right: 24px; }
+    }
 </style>
 </head>
 <body>
 
-<div class="logo">KHEL.O</div>
-<button class="embed-btn" onclick="alert('Embed Code:\n<iframe src=&quot;https://your-server.com/index.html&quot; width=&quot;300&quot; height=&quot;500&quot; frameborder=&quot;0&quot;></iframe>')">🔗 Embed Patch</button>
+<!-- HEADER -->
+<header>
+    <div class="logo" id="logo-text">KHEL.O</div>
+    <!-- ADMIN LINK -->
+    <a href="admin.html" class="admin-link" title="Go to Admin Panel">
+        <span class="material-symbols-rounded">shield_person</span>
+        <span>Admin</span>
+    </a>
+</header>
 
-<div class="wheel-container">
-    <div class="wheel" id="wheel">
-        <!-- 12 Faces populated by JS -->
+<!-- MAIN CONTENT -->
+<main>
+    <div class="intent-display" id="intent-display">
+        Roll the <span class="highlight">5W1H Dice</span> to explore the mesh...
     </div>
-</div>
+    
+    <div class="grid-container" id="grid-container">
+        <!-- Tiles populated dynamically by JS -->
+    </div>
+</main>
 
-<div class="status" id="status">Roll the dice to explore...</div>
-<button class="dice-btn" id="diceBtn" onclick="rollDice()">🎲</button>
+<!-- FLOATING DICE -->
+<button class="fab-dice" id="fab-dice" onclick="rollDice()">
+    <span class="material-symbols-rounded">casino</span>
+</button>
 
 <script>
-    const wheel = document.getElementById('wheel');
-    const status = document.getElementById('status');
-    const diceBtn = document.getElementById('diceBtn');
-    
-    const intents = ["What", "Why", "Where", "When", "Who", "How"];
-    const jumbles = ["khel.o", "ba.che", "kri.shi", "ka.li", "mu.kti", "sa.hyog"];
-    const keywords = ["water", "soil", "energy", "community", "mind", "nature"];
-
-    let currentRotation = 0;
-
-    // Drag to rotate the wheel
-    let isDragging = false, startX = 0, startRot = 0;
-    wheel.addEventListener('mousedown', e => { isDragging = true; startX = e.clientX; startRot = currentRotation; });
-    window.addEventListener('mousemove', e => {
-        if (!isDragging) return;
-        const delta = e.clientX - startX;
-        currentRotation = startRot + delta * 0.5;
-        wheel.style.transform = `rotateX(-10deg) rotateY(${currentRotation}deg)`;
-    });
-    window.addEventListener('mouseup', () => isDragging = false);
-
-    async function rollDice() {
-        diceBtn.classList.add('rolling');
-        status.innerText = "Jumbling the cosmos...";
-        status.classList.add('show');
-
-        const intent = intents[Math.floor(Math.random() * intents.length)];
-        const jumble = jumbles[Math.floor(Math.random() * jumbles.length)];
-        const keyword = keywords[Math.floor(Math.random() * keywords.length)];
-
-        // Spin wheel rapidly
-        currentRotation += 720;
-        wheel.style.transform = `rotateX(-10deg) rotateY(${currentRotation}deg)`;
-
-        try {
-            const res = await fetch('/api/query', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ intent, keywords: keyword, jumble })
-            });
-            const data = await res.json();
-            
-            renderTiles(data.tiles);
-            
-            // Speak the voice message using Browser TTS (Zero API cost, instant)
-            if (data.voiceMsg && 'speechSynthesis' in window) {
-                const utterance = new SpeechSynthesisUtterance(data.voiceMsg);
-                utterance.rate = 0.9;
-                speechSynthesis.speak(utterance);
-            }
-
-            status.innerText = `${intent} ${jumble} ${keyword}`;
-        } catch (err) {
-            status.innerText = "Connection lost. Retrying...";
-        } finally {
-            diceBtn.classList.remove('rolling');
-        }
-    }
-
-    function renderTiles(tiles) {
-        wheel.innerHTML = '';
-        tiles.forEach((tile, i) => {
-            const typeColor = { product: '#10b981', book: '#3b82f6', event: '#f59e0b', fact: '#8b5cf6' };
-            const face = document.createElement('div');
-            face.className = 'face';
-            face.innerHTML = `
-                <div class="tile-icon">${tile.icon}</div>
-                <div class="tile-type" style="color: ${typeColor[tile.id[0]] || '#fff'}">${tile.id[0].toUpperCase()}</div>
-                <div class="tile-title">${tile.title}</div>
-                <a href="${tile.link}" target="_blank" class="tile-link">Explore →</a>
-            `;
-            wheel.appendChild(face);
-        });
+    // ==========================================
+    // 1. THE TRUTH DATABASE (Embedded, No Server Needed)
+    // ==========================================
+    const DB = [
+        // Products (Amazon Affiliate)
+        { id: "p1", type: "product", title: "Rainwater Harvesting Barrel", link: "https://www.amazon.com/s?k=rainwater+harvesting+barrel&tag=amazon0339f-21", icon: "🪣", tags: ["water", "eco", "garden", "ba.che", "why", "how"] },
+        { id: "p2", type: "product", title: "Native Wildflower Seed Mix", link: "https://www.amazon.com/s?k=native+wildflower+seeds&tag=amazon0339f-21", icon: "🌻", tags: ["biodiversity", "bees", "eco", "khel.o", "what", "where"] },
+        { id: "p3", type: "product", title: "Home Composting Kit", link: "https://www.amazon.com/s?k=composting+starter+kit&tag=amazon0339f-21", icon: "🪱", tags: ["soil", "waste", "garden", "kri.shi", "how", "why"] },
+        { id: "p4", type: "product", title: "Solar Power Bank 20000mAh", link: "https://www.amazon.com/s?k=solar+power+bank&tag=amazon0339f-21", icon: "🔋", tags: ["energy", "solar", "tech", "mu.kti", "where", "when"] },
+        { id: "p5", type: "product", title: "Organic Vegetable Seed Kit", link: "https://www.amazon.com/s?k=organic+vegetable+seeds&tag=amazon0339f-21", icon: "🍅", tags: ["food", "garden", "health", "sa.hyog", "what", "how"] },
+        { id: "p6", type: "product", title: "Water Quality Testing Kit", link: "https://www.amazon.com/s?k=water+testing+kit&tag=amazon0339f-21", icon: "💧", tags: ["water", "health", "science", "ba.che", "why", "what"] },
         
-        // Reset rotation to show first tile
-        currentRotation = 0;
-        wheel.style.transform = `rotateX(-10deg) rotateY(0deg)`;
+        // Books
+        { id: "b1", type: "book", title: "The Water Will Come", link: "https://www.amazon.com/s?k=the+water+will+come+jeff+goodell&tag=amazon0339f-21", icon: "📘", tags: ["water", "climate", "science", "why", "what"] },
+        { id: "b2", type: "book", title: "Braiding Sweetgrass", link: "https://www.amazon.com/s?k=braiding+sweetgrass&tag=amazon0339f-21", icon: "🌿", tags: ["eco", "indigenous", "nature", "khel.o", "how", "why"] },
+        { id: "b3", type: "book", title: "Drawdown: The Most Comprehensive Plan", link: "https://www.amazon.com/s?k=drawdown+paul+hawken&tag=amazon0339f-21", icon: "🌍", tags: ["climate", "solutions", "eco", "kri.shi", "what", "how"] },
+        { id: "b4", type: "book", title: "The Hidden Life of Trees", link: "https://www.amazon.com/s?k=the+hidden+life+of+trees&tag=amazon0339f-21", icon: "🌳", tags: ["nature", "forest", "science", "mu.kti", "why", "where"] },
+        { id: "b5", type: "book", title: "Silent Spring", link: "https://www.amazon.com/s?k=silent+spring+rachel+carson&tag=amazon0339f-21", icon: "🐦", tags: ["pollution", "history", "eco", "sa.hyog", "what", "why"] },
+        { id: "b6", type: "book", title: "Thinking, Fast and Slow", link: "https://www.amazon.com/s?k=thinking+fast+and+slow&tag=amazon0339f-21", icon: "🧠", tags: ["psychology", "mind", "human", "ba.che", "how", "what"] },
+        
+        // Events
+        { id: "e1", type: "event", title: "World Water Summit", link: "https://www.worldwatersummit.org/", icon: "🌊", tags: ["water", "conference", "global", "where", "when"] },
+        { id: "e2", type: "event", title: "Earth Day Network", link: "https://www.earthday.org/", icon: "🌍", tags: ["eco", "global", "action", "khel.o", "when", "where"] },
+        { id: "e3", type: "event", title: "TED: The Future We Choose", link: "https://www.ted.com/topics/climate-change", icon: "🎤", tags: ["climate", "talks", "ideas", "kri.shi", "why", "how"] },
+        { id: "e4", type: "event", title: "Global Citizen Festival", link: "https://www.globalcitizen.org/", icon: "🎶", tags: ["community", "music", "action", "mu.kti", "where", "when"] },
+        { id: "e5", type: "event", title: "UN Biodiversity Conference", link: "https://www.cbd.int/conferences/", icon: "🦋", tags: ["biodiversity", "un", "global", "sa.hyog", "when", "where"] },
+        { id: "e6", type: "event", title: "Maker Faire (Open Source)", link: "https://makerfaire.com/", icon: "🛠️", tags: ["tech", "diy", "community", "ba.che", "how", "what"] },
+        
+        // Facts
+        { id: "f1", type: "fact", title: "Only 3% of Earth's water is fresh.", icon: "💧", tags: ["water", "fact", "nature", "why", "what"] },
+        { id: "f2", type: "fact", title: "Trees communicate via fungal networks.", icon: "🍄", tags: ["nature", "science", "forest", "how", "what"] },
+        { id: "f3", type: "fact", title: "Composting reduces methane emissions.", icon: "🌱", tags: ["soil", "climate", "fact", "why", "how"] },
+        { id: "f4", type: "fact", title: "Solar is now the cheapest electricity.", icon: "☀️", tags: ["energy", "fact", "tech", "what", "why"] },
+        { id: "f5", type: "fact", title: "Bees pollinate 1/3 of our food.", icon: "🐝", tags: ["food", "nature", "fact", "why", "what"] },
+        { id: "f6", type: "fact", title: "The human brain uses 20% of body energy.", icon: "🧠", tags: ["human", "health", "fact", "how", "what"] }
+    ];
+
+    // ==========================================
+    // 2. THE JUMBLING SEMANTIC ENGINE
+    // ==========================================
+    function getMatchingItems(intent, keyword) {
+        let scored = DB.map(item => {
+            let score = 0;
+            if (item.tags.includes(intent.toLowerCase())) score += 5;
+            if (item.tags.includes(keyword.toLowerCase())) score += 5;
+            
+            // Fuzzy match for jumbled words
+            const jumbles = ["khel.o", "ba.che", "kri.shi", "ka.li", "mu.kti", "sa.hyog"];
+            jumbles.forEach(j => {
+                if (keyword.includes(j) && item.tags.includes(j)) score += 10;
+            });
+            
+            // Add slight randomness for the "discovery" feel
+            score += Math.random() * 2; 
+            return { ...item, score };
+        });
+
+        // Sort by score and take top 12
+        scored.sort((a, b) => b.score - a.score);
+        return scored.slice(0, 12);
     }
 
-    // Initial load
+    // ==========================================
+    // 3. UI RENDERING & JUMBLING TEXT EFFECT
+    // ==========================================
+    function jumbleText(elementId, finalText) {
+        const el = document.getElementById(elementId);
+        const chars = "!<>-_\\/[]{}—=+*^?~ba.che khel.o kri.shi";
+        let counter = 0;
+        const interval = setInterval(() => {
+            let scrambled = "";
+            for (let i = 0; i < finalText.length; i++) {
+                if (i < counter) {
+                    scrambled += finalText[i];
+                } else {
+                    scrambled += chars[Math.floor(Math.random() * chars.length)];
+                }
+            }
+            el.innerHTML = scrambled;
+            counter += 1/3;
+            if (counter >= finalText.length) {
+                el.innerHTML = finalText;
+                clearInterval(interval);
+            }
+        }, 40);
+    }
+
+    function renderGrid(items) {
+        const grid = document.getElementById('grid-container');
+        grid.innerHTML = '';
+        
+        items.forEach((item, index) => {
+            const tile = document.createElement('a');
+            tile.href = item.link;
+            tile.target = "_blank";
+            tile.className = 'tile';
+            tile.style.animationDelay = `${index * 0.05}s`;
+            
+            tile.innerHTML = `
+                <div class="tile-header">
+                    <span class="tile-icon">${item.icon}</span>
+                    <span class="tile-type ${item.type}">${item.type}</span>
+                </div>
+                <div class="tile-title">${item.title}</div>
+                <div class="tile-action">
+                    Explore Node <span class="material-symbols-rounded" style="font-size:16px;">arrow_forward</span>
+                </div>
+            `;
+            grid.appendChild(tile);
+        });
+    }
+
+    // ==========================================
+    // 4. THE 5W1H DICE ROLLER
+    // ==========================================
+    function rollDice() {
+        const fab = document.getElementById('fab-dice');
+        fab.classList.add('rolling');
+        
+        const intents = ["What", "Why", "Where", "When", "Who", "How"];
+        const keywords = ["water", "soil", "energy", "community", "mind", "nature", "khel.o", "ba.che", "kri.shi"];
+        
+        const randomIntent = intents[Math.floor(Math.random() * intents.length)];
+        const randomKeyword = keywords[Math.floor(Math.random() * keywords.length)];
+        
+        // Jumble the intent display
+        jumbleText('intent-display', `${randomIntent} do we ${randomKeyword}?`);
+        
+        // Get matching items and render
+        const matches = getMatchingItems(randomIntent, randomKeyword);
+        
+        setTimeout(() => {
+            renderGrid(matches);
+            fab.classList.remove('rolling');
+        }, 800);
+    }
+
+    // ==========================================
+    // 5. INITIAL LOAD
+    // ==========================================
     window.onload = () => {
-        status.innerText = "Welcome to Khel.o. Roll the dice.";
-        status.classList.add('show');
+        // Jumble the logo on load
+        jumbleText('logo-text', 'KHEL.O');
+        
+        // Load initial random set
+        const initialItems = [...DB].sort(() => 0.5 - Math.random()).slice(0, 12);
+        renderGrid(initialItems);
     };
 </script>
 </body>
