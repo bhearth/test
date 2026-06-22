@@ -2,519 +2,686 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Khel.o · Aphelion & Dis-Play Universe 2086</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.4/gsap.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fibonacci Knowledge Core · Pentagon Edition</title>
 <style>
-:root{--bg:#03050a;--panel:rgba(6,11,20,.85);--line:rgba(125,205,255,.16);--line-b:rgba(125,205,255,.4);--text:#e9edf3;--muted:#7c8aa0;--accent:#5eead4;--amber:#ffb454;}
-*{margin:0;padding:0;box-sizing:border-box;user-select:none;-webkit-tap-highlight-color:transparent;}
-html,body{background:var(--bg);color:var(--text);font-family:Inter,sans-serif;overflow:hidden;height:100vh;touch-action:none;}
-.mono{font-family:'JetBrains Mono',monospace;} .disp{font-family:'Space Grotesk',sans-serif;}
-#canvas-container,#labels-container{position:absolute;inset:0;}
-#labels-container{z-index:4;pointer-events:none;overflow:hidden;}
-.html-label{position:absolute;pointer-events:none;transform:translate(-50%,-50%);transition:opacity .35s;white-space:nowrap;}
-.planet-label{color:#fff;font-size:11px;font-weight:600;letter-spacing:2.5px;text-transform:uppercase;text-shadow:0 0 12px rgba(0,0,0,.9);}
-.mission-label{color:var(--accent);font-size:9px;font-weight:500;letter-spacing:1px;background:rgba(3,8,14,.55);padding:2px 7px;border:1px solid var(--line);border-radius:2px;}
-.hud{position:absolute;inset:0;z-index:10;pointer-events:none;} .interactive{pointer-events:auto;}
-.brand{position:absolute;top:22px;left:24px;cursor:pointer; display: flex; gap: 20px; align-items: center;}
-.brand .eyebrow{font-size:9px;letter-spacing:3px;color:var(--muted);text-transform:uppercase;}
-.brand .title{font-size:1.3rem;font-weight:600;color:var(--text);} .brand .title span{color:var(--accent);}
-.btn-arch{background:var(--panel); border:1px solid var(--line); padding:6px 12px; border-radius:2px; color:var(--accent); font-size:10px; letter-spacing:1px; text-transform:uppercase; cursor:pointer;}
-#panel{position:absolute;top:0;right:0;height:100vh;width:320px;background:var(--panel);border-left:1px solid var(--line);backdrop-filter:blur(10px);display:flex;flex-direction:column;transition:transform .4s; z-index: 50;}
-#panel.collapsed{transform:translateX(calc(100% - 30px));}
-#panel-toggle{position:absolute;top:50%;left:-1px;transform:translateY(-50%);width:30px;height:54px;background:var(--panel);border:1px solid var(--line);border-right:none;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--accent);}
-.panel-head{padding:22px 18px 14px;border-bottom:1px solid var(--line);}
-.panel-list{flex:1;overflow-y:auto;padding:6px 0;} .panel-list::-webkit-scrollbar{width:0;}
-.row{display:flex;align-items:center;justify-content:space-between;padding:11px 18px;cursor:pointer;border-bottom:1px solid rgba(125,205,255,.06); text-decoration: none; color: var(--text);}
-.row:hover{background:rgba(125,205,255,.05);} .row.active{background:rgba(125,205,255,.09);border-left:2px solid var(--accent);}
-.row .rname{font-size:12.5px;font-weight:500;} .row .rtype{font-size:8.5px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-top:2px;}
-#mission-bar{position:absolute;bottom:0;left:0;right:320px;display:flex;border-top:1px solid var(--line);background:linear-gradient(to top,rgba(2,4,8,.85),rgba(2,4,8,0));}
-.mcard{flex:1;padding:16px 18px 20px;border-right:1px solid var(--line);cursor:pointer;} .mcard:last-child{border-right:none;} .mcard:hover{background:rgba(125,205,255,.05);}
-.mcard .num{font-size:9px;color:var(--amber);letter-spacing:2px;} .mcard .mtitle{font-size:12.5px;font-weight:600;margin-top:5px;} .mcard .msub{font-size:10px;color:var(--muted);margin-top:3px;line-height:1.4;}
+  :root {
+    --bg: #050505; --gold: #d4af37; --text: #e8f5e8;
+    --rose: #fb7185; --cyan: #22d3ee; --green: #34d399; --violet: #a78bfa;
+    --pentagon-scale: 1.0;
+  }
+  body { margin: 0; background: var(--bg); color: var(--gold); font-family: 'Segoe UI', sans-serif; overflow: hidden; height: 100vh; }
 
-/* DIS-PLAY OVERLAY (Golden Seed & Fibonacci Explosion) */
-#seed-container { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 20; pointer-events: auto; }
-.golden-seed { width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; cursor: pointer; position: relative; }
-.golden-seed::after { content: ''; width: 10px; height: 10px; background: var(--amber); border-radius: 50%; box-shadow: 0 0 20px 8px rgba(255,180,84,0.8); animation: pulse 2s infinite; }
-@keyframes pulse{0%,100%{transform:scale(1); opacity:1;}50%{transform:scale(1.3); opacity:.7;}}
-.fib-node { position: absolute; width: 46px; height: 46px; border-radius: 50%; background: rgba(6,11,20,0.9); border: 1px solid var(--line-b); display: flex; align-items: center; justify-content: center; font-size: 18px; cursor: pointer; transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); pointer-events: auto; text-align: center; box-shadow: 0 0 15px rgba(94,234,212,0.2); }
-.fib-node:hover { transform: scale(1.6) !important; background: var(--accent); color: #000; z-index: 100; border-color: #fff; }
-.fib-node .tooltip { position: absolute; bottom: -24px; left: 50%; transform: translateX(-50%); font-size: 9px; color: var(--accent); white-space: nowrap; opacity: 0; transition: 0.2s; pointer-events: none; font-family: 'JetBrains Mono', monospace; letter-spacing: 1px;}
-.fib-node:hover .tooltip { opacity: 1; bottom: -30px; }
+  /* ==========================================
+     THE GUIDANCE LAYER
+     ========================================== */
+  #guide {
+    position: absolute; top: 40px; width: 100%; text-align: center;
+    color: rgba(212, 175, 55, 0.7); font-size: 14px; letter-spacing: 3px;
+    text-transform: uppercase; pointer-events: none; transition: opacity 0.5s ease; z-index: 10;
+  }
 
-/* SINGULARITY MODAL */
-#singularity-modal { position: fixed; inset: 0; background: rgba(3,5,10,0.92); backdrop-filter: blur(16px); z-index: 1000; display: none; align-items: center; justify-content: center; }
-#singularity-modal.active { display: flex; animation: fadeIn 0.4s ease; }
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-.sing-card { background: var(--panel); border: 1px solid var(--line-b); padding: 32px; border-radius: 4px; max-width: 460px; width: 90%; text-align: center; }
-.sing-card h2 { color: var(--accent); margin-bottom: 8px; font-size: 1.5rem; }
-.sing-path { font-size: 10px; color: var(--muted); margin-bottom: 16px; letter-spacing: 1px; }
-.sing-msg { font-size: 14px; line-height: 1.6; margin-bottom: 24px; color: var(--text); }
-.sing-komute { display: block; background: var(--amber); color: #000; padding: 14px; text-decoration: none; font-weight: 700; border-radius: 2px; font-size: 14px; margin-bottom: 12px; }
-.sing-amazon { display: block; background: transparent; border: 1px solid var(--line); color: var(--text); padding: 10px; text-decoration: none; font-size: 12px; border-radius: 2px; margin-bottom: 16px; }
-.sing-close { background: none; border: 1px solid var(--line); color: var(--muted); padding: 8px 20px; cursor: pointer; font-size: 12px; letter-spacing: 1px; text-transform: uppercase; }
+  /* ==========================================
+     THE UNIVERSAL HUB (Auto-Centered) — unchanged galaxy engine
+     ========================================== */
+  #hub {
+    position: fixed; top: 50%; left: 50%; width: 60px; height: 60px;
+    transform: translate(-50%, -50%); z-index: 50; cursor: grab;
+    display: flex; justify-content: center; align-items: center; touch-action: none;
+  }
+  #hub:active { cursor: grabbing; }
+  #scale-wrapper {
+    width: 300px; height: 300px; position: absolute;
+    transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transform: scale(0.15); display: flex; justify-content: center; align-items: center;
+  }
+  #hub.idle #scale-wrapper { transform: scale(0.048); }
+  #hub.expanded #scale-wrapper { transform: scale(1); }
+  #scene { width: 100%; height: 100%; position: absolute; transform-style: preserve-3d; pointer-events: auto; }
+  .dot { transition: cx 1.2s cubic-bezier(0.34, 1.56, 0.64, 1), cy 1.2s cubic-bezier(0.34, 1.56, 0.64, 1), r 1s ease, fill 1.5s ease; }
+  #hub.expanded .dot { cursor: pointer; }
+  #hub.expanded .dot:hover { stroke: #fff; stroke-width: 1.5px; filter: drop-shadow(0 0 10px #fff); transform: scale(1.5); }
+  .node-wrapper { transition: transform 1s cubic-bezier(0.34, 1.56, 0.64, 1); }
+  .node-content { transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); cursor: pointer; }
+  .node-content:hover { transform: scale(1.3); }
+  .outer-node circle { fill: rgba(10,10,10,0.9); stroke: var(--gold); stroke-width: 1.5; transition: 0.3s; }
+  .outer-node text { pointer-events: none; transition: 0.3s; }
+  .outer-node:hover circle { fill: rgba(212, 175, 55, 0.2); filter: drop-shadow(0 0 10px var(--gold)); }
+  .center-node circle { fill: rgba(212, 175, 55, 0.15); stroke: var(--gold); stroke-width: 2; transition: 0.3s; }
+  .center-node text { pointer-events: none; transition: 0.3s; }
+  .center-node:hover circle { fill: rgba(212, 175, 55, 0.4); filter: drop-shadow(0 0 15px var(--gold)); }
 
-@media (max-width:760px){#panel{width:85vw;} #mission-bar{display:none;}}
+  #msg {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0);
+    background: rgba(5,5,5,0.95); border: 1px solid var(--gold); padding: 25px 35px;
+    border-radius: 12px; text-align: center; transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    pointer-events: none; z-index: 1000; box-shadow: 0 10px 40px rgba(0,0,0,0.8), 0 0 20px rgba(212,175,55,0.2);
+    min-width: 220px; max-width: 380px; width: 90%;
+  }
+  #msg.active { transform: translate(-50%, -50%) scale(1); pointer-events: auto; }
+  #msg h2 { margin: 0 0 10px 0; color: #fff; font-weight: 400; font-size: 20px; letter-spacing: 1px; }
+  #msg p { margin: 0 0 20px 0; font-size: 13px; color: #ccc; line-height: 1.6; }
+  .btn-container { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  button { background: transparent; border: 1px solid var(--gold); color: var(--gold); padding: 8px 20px; cursor: pointer; border-radius: 4px; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; transition: 0.3s; font-family: inherit; }
+  button:hover { background: var(--gold); color: #000; box-shadow: 0 0 15px rgba(212,175,55,0.4); }
+  .btn-primary { background: rgba(212,175,55,0.1); }
+
+  /* ==========================================
+     PENTAGON TRAY — new control layer (draggable + pinch/wheel resizable)
+     ========================================== */
+  #pentagon-wrap { position: fixed; z-index: 200; user-select: none; touch-action: none; cursor: grab; transform: scale(var(--pentagon-scale)); }
+  #pentagon-wrap:active { cursor: grabbing; }
+  .pwheel { position: relative; width: 140px; height: 140px; border-radius: 50%; overflow: hidden; transform: rotate(45deg); box-shadow: 0 15px 40px rgba(0,0,0,0.85), inset 0 0 15px rgba(212,175,55,0.15); background: #000; border: 1px solid rgba(212,175,55,0.25); }
+  .pquad { position: absolute; width: 50%; height: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: filter 0.2s; box-shadow: inset 0 0 10px rgba(0,0,0,0.7); }
+  .pquad:hover { filter: brightness(1.35); z-index: 5; }
+  .pquad .picon { transform: rotate(-45deg); font-size: 22px; color: #fff; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.6)); }
+  .pq-search { top:0; left:0; background: linear-gradient(135deg, var(--rose), #be123c); }
+  .pq-voice { top:0; right:0; background: linear-gradient(135deg, var(--cyan), #0e7490); }
+  .pq-library { bottom:0; right:0; background: linear-gradient(135deg, var(--green), #047857); }
+  .pq-settings { bottom:0; left:0; background: linear-gradient(135deg, var(--violet), #6d28d9); }
+  .pcore { position: absolute; top:50%; left:50%; transform: translate(-50%,-50%) rotate(-45deg); width: 54px; height: 54px; border-radius: 50%; background: radial-gradient(circle at 30% 30%, #fff8dc, var(--gold)); border: 3px solid #fff; display: flex; align-items: center; justify-content: center; z-index: 10; cursor: pointer; box-shadow: 0 0 20px rgba(212,175,55,0.5); transition: transform 0.3s cubic-bezier(0.175,0.885,0.32,1.275); }
+  .pcore:hover { transform: translate(-50%,-50%) rotate(-45deg) scale(1.12); }
+  .pcore span { font-size: 24px; color: #000; }
+  .pcore.rolling span { animation: pspin 0.4s linear infinite; }
+  @keyframes pspin { 100% { transform: rotate(360deg); } }
+  #voice-indicator { position: fixed; bottom: 210px; left: 50%; transform: translateX(-50%); font-size: 11px; letter-spacing: 2px; color: var(--cyan); opacity: 0; transition: 0.3s; pointer-events: none; text-transform: uppercase; }
+  #voice-indicator.live { opacity: 1; }
+  #voice-indicator.live::before { content: "🎙️ "; }
+
+  /* ==========================================
+     PANELS (search / library / settings) — shared shell
+     ========================================== */
+  .panel { position: fixed; inset: 0; background: rgba(3,3,3,0.96); backdrop-filter: blur(16px); z-index: 300; display: none; flex-direction: column; padding: 32px 24px; overflow-y: auto; }
+  .panel.active { display: flex; }
+  .panel-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; max-width: 760px; width: 100%; margin-left: auto; margin-right: auto; }
+  .panel-head h2 { color: #fff; font-weight: 400; font-size: 1.4rem; letter-spacing: 1px; margin: 0; }
+  .panel-close { background: none; border: 1px solid rgba(212,175,55,0.4); color: var(--gold); width: 36px; height: 36px; border-radius: 50%; cursor: pointer; font-size: 16px; }
+  .panel-body { max-width: 760px; width: 100%; margin: 0 auto; }
+  .pinput { width: 100%; background: rgba(255,255,255,0.04); border: 1px solid rgba(212,175,55,0.25); border-radius: 10px; padding: 12px 16px; color: #fff; font-size: 0.95rem; outline: none; margin-bottom: 14px; font-family: inherit; }
+  .pinput:focus { border-color: var(--gold); }
+  .result-row { display:flex; align-items:center; gap:12px; background: rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.07); border-radius:12px; padding:14px 16px; margin-bottom:10px; }
+  .result-row a { color: var(--gold); text-decoration:none; font-weight:600; font-size:0.92rem; }
+  .result-row p { margin:4px 0 0; font-size:0.78rem; color:#aaa; }
+  .ext-row { display:flex; justify-content:space-between; align-items:center; padding:14px 16px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.07); border-radius:14px; margin-bottom:10px; }
+  .ext-row .nm { font-weight:600; font-size:0.9rem; color:#fff; }
+  .ext-row .ds { font-size:0.74rem; color:#999; margin-top:2px; }
+  .pswitch { position:relative; width:42px; height:23px; flex-shrink:0; }
+  .pswitch input { opacity:0; width:0; height:0; }
+  .pslider { position:absolute; inset:0; background:rgba(255,255,255,0.15); border-radius:24px; cursor:pointer; transition:0.25s; }
+  .pslider::before { content:''; position:absolute; width:17px; height:17px; left:3px; top:3px; background:#fff; border-radius:50%; transition:0.25s; }
+  input:checked + .pslider { background: var(--green); }
+  input:checked + .pslider::before { transform: translateX(19px); }
+  .warn { background: rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.3); border-radius:12px; padding:12px 14px; font-size:0.76rem; color:#fca5a5; margin-bottom:16px; line-height:1.5; }
+  .config-row { display:flex; gap:8px; margin-bottom:10px; }
+  .config-row label { width:140px; font-size:0.78rem; color:#999; padding-top:12px; flex-shrink:0; }
 </style>
 </head>
 <body>
 
-<div id="canvas-container"></div>
-<div id="labels-container"></div>
+<div id="guide">🌱 Awaken the Seed</div>
 
-<div class="hud">
-  <div class="brand interactive">
-      <div onclick="A.resetCamera()">
-          <div class="eyebrow">MISSION CONTROL</div>
-          <div class="title disp">Khel.o <span>/ Aphelion</span></div>
-      </div>
-      <button class="btn-arch" onclick="DP.showArchives()">📚 Earth Org Archives</button>
-      <button class="btn-arch" onclick="DP.listen()">🎙️ Voice</button>
+<div id="hub" class="idle">
+  <div id="scale-wrapper">
+    <svg id="scene" viewBox="-100 -100 200 200"></svg>
   </div>
-
-  <!-- The Golden Seed (Dis-Play) -->
-  <div id="seed-container" class="interactive">
-      <div class="golden-seed" id="golden-seed" title="Touch the Seed to Awaken"></div>
-  </div>
-
-  <div id="panel" class="interactive">
-    <div id="panel-toggle" onclick="A.togglePanel()">›</div>
-    <div class="panel-head"><div class="mono" style="font-size:10px; letter-spacing:2px; color:var(--muted);">NAVIGATION & ARCHIVES</div></div>
-    <div id="panel-list" class="panel-list"></div>
-  </div>
-
-  <div id="mission-bar" class="interactive"></div>
 </div>
 
-<!-- Singularity Outcome Modal -->
-<div id="singularity-modal">
-    <div class="sing-card">
-        <h2 class="disp">Singularity Resolved</h2>
-        <div id="sing-path" class="mono"></div>
-        <div id="sing-msg" class="sing-msg"></div>
-        <a id="sing-komute" href="#" target="_blank" class="disp">🚶 Walk to Assembly</a>
-        <a id="sing-amazon" href="#" target="_blank" class="mono">📦 Gear & Resources (Amazon)</a>
-        <button class="sing-close" onclick="DP.closeSingularity()">Return to Cosmos</button>
-    </div>
+<div id="msg"><div id="msg-content"></div></div>
+<div id="voice-indicator">Listening for a category...</div>
+
+<!-- ===== PENTAGON TRAY ===== -->
+<div id="pentagon-wrap">
+  <div class="pwheel">
+    <div class="pquad pq-search" onclick="Pentagon.tap(this,'jumpContribution')" title="Contribution Economy"><span class="picon">🤲</span></div>
+    <div class="pquad pq-voice" onclick="Pentagon.tap(this,'jumpRelevance')" title="Relevance Filter"><span class="picon">🎯</span></div>
+    <div class="pquad pq-library" onclick="Pentagon.tap(this,'openLibrary')" title="Library"><span class="picon">📖</span></div>
+    <div class="pquad pq-settings" onclick="Pentagon.tap(this,'openSettings')" title="Settings & Extensions"><span class="picon">⚙️</span></div>
+    <div class="pcore" id="pcore" onclick="Pentagon.tap(this,'rollDice')" title="Open dice hub"><span>🎲</span></div>
+  </div>
+</div>
+
+<!-- ===== SEARCH PANEL ===== -->
+<div class="panel" id="panel-search">
+  <div class="panel-head"><h2>🔍 Search the Knowledge Core</h2><button class="panel-close" onclick="Pentagon.close('panel-search')">×</button></div>
+  <div class="panel-body">
+    <input class="pinput" id="search-input" placeholder="Search kids.miraheze.org and event listings..." onkeypress="if(event.key==='Enter') Pentagon.runSearch()">
+    <button onclick="Pentagon.runSearch()" style="width:100%; margin-bottom:20px;">Search</button>
+    <div id="search-results"></div>
+  </div>
+</div>
+
+<!-- ===== LIBRARY PANEL (flat list, complements the radial galaxy) ===== -->
+<div class="panel" id="panel-library">
+  <div class="panel-head"><h2>📖 Library</h2><button class="panel-close" onclick="Pentagon.close('panel-library')">×</button></div>
+  <div class="panel-body" id="library-body"></div>
+</div>
+
+<!-- ===== SETTINGS / EXTENSIONS PANEL ===== -->
+<div class="panel" id="panel-settings">
+  <div class="panel-head"><h2>⚙️ Settings & Extensions</h2><button class="panel-close" onclick="Pentagon.close('panel-settings')">×</button></div>
+  <div class="panel-body">
+    <div id="ext-list"></div>
+    <hr style="border-color:rgba(255,255,255,0.08); margin:20px 0;">
+    <h3 style="color:#fff; font-weight:400; font-size:1rem; margin-bottom:10px;">Configuration</h3>
+    <div class="warn">This file lives in a public GitHub repo. Anything typed into the fields below and committed is readable by anyone who views the file — including API keys and database passwords. Leave these blank unless you're running a private fork, or wire them through a small backend instead of hardcoding them here.</div>
+    <div class="config-row"><label>Amazon affiliate tag</label><input class="pinput" id="cfg-amazon" placeholder="amazon0339f-21" style="margin-bottom:0;"></div>
+    <div class="config-row"><label>UPI payee ID</label><input class="pinput" id="cfg-upi" placeholder="yourname@upi" style="margin-bottom:0;"></div>
+    <div class="config-row"><label>Neo4j URI</label><input class="pinput" id="cfg-neo4j-uri" placeholder="neo4j+s://... (leave blank — see warning)" style="margin-bottom:0;"></div>
+    <div class="config-row"><label>AI API key</label><input class="pinput" id="cfg-ai-key" placeholder="leave blank — see warning" style="margin-bottom:0;"></div>
+    <button onclick="Pentagon.saveConfig()" style="margin-top:14px;">Save (this browser only)</button>
+    <div id="upi-qr-area" style="margin-top:20px;"></div>
+  </div>
 </div>
 
 <script>
+const hub = document.getElementById('hub');
+const scene = document.getElementById('scene');
+const guide = document.getElementById('guide');
+const dots = [];
+const nodes = [];
+let currentLayer = 'cosmos';
+
 // ==========================================
-// 1. SEMANTIC MESH (Zetta-Byte Data from 1.json - 5.json)
+// 1. DATA LAYER (unchanged from the original file)
 // ==========================================
-const SEMANTIC_MESH = {
-    "0.1": "individual", "0.11": "body", "0.111": "physical_wellbeing", "0.1111": "breath_awareness", "0.11111": "diaphragmatic_breathing",
-    "0.2": "samajh", "0.21": "family", "0.211": "kinship", "0.2111": "extended_family_bonds", "0.21111": "ancestral_storytelling_circles",
-    "0.3": "econology", "0.31": "ecology", "0.311": "ecosystem_health", "0.3111": "soil_microbiome_restoration", "0.31111": "mycorrhizal_network_restoration",
-    "0.4": "earth_engineering", "0.41": "infrastructure", "0.411": "biophilic_design", "0.4111": "urban_forestry", "0.41111": "riparian_buffer_planting",
-    "0.5": "discovery", "0.51": "science", "0.511": "physics", "0.5111": "quantum_mechanics", "0.51111": "entanglement_observation",
-    "0.6": "innovation", "0.61": "technology", "0.611": "open_source", "0.6111": "mesh_networks", "0.61111": "decentralized_protocol_dev",
-    "0.8": "sahyog", "0.81": "collaboration", "0.811": "joint_problem_solving", "0.8111": "design_thinking_workshop", "0.81111": "design_thinking_for_social_impact",
-    "0.888": "cultural_synthesis", "0.8881": "raga_yaman_collaboration", "0.88811": "evening_raga_yaman_with_flute", "0.8882": "bhajan_circle", "0.88821": "morning_bhajan_circle_in_temple",
-    "0.9": "mukti", "0.91": "liberty", "0.911": "freedom_of_thought", "0.9111": "freedom_of_conscience", "0.91111": "freedom_of_conscience_in_refugee_camps",
-    "0.92": "stillness", "0.921": "inner_silence", "0.9211": "vipassana_retreat", "0.92111": "ten_day_silent_noble_silence"
+const SOURCES = {
+    cosmos:       { icon: "✨", color: "#d4af37", name: "Cosmos" },
+    contribution: { icon: "🤲", color: "#fcd34d", name: "Contribution" },
+    relevance:    { icon: "🎯", color: "#f97316", name: "Relevance" },
+    ecology:      { icon: "🌱", color: "#66ff66", name: "Ecology" },
+    books:        { icon: "📚", color: "#ff6699", name: "Books" },
+    events:       { icon: "📅", color: "#00ffff", name: "Events" },
+    organizations:{ icon: "🤝", color: "#ffaa00", name: "Organizations" },
+    research:     { icon: "🔬", color: "#ffffff", name: "Research" }
+};
+const MOCK_DATA = {
+    contribution: [
+        "Plant a seed — it outlasts the effort",
+        "Write one wiki page — it works while you sleep",
+        "Deploy one URL — anyone can open it",
+        "Teach one skill — it multiplies through others",
+        "Document a local practice — it survives the person",
+        "Fix one real problem for one real person",
+        "Create something a stranger can use without asking you"
+    ],
+    relevance: [
+        "Does this output outlast the effort?",
+        "Can someone else build on this without me?",
+        "Is walking there better than sending a message?",
+        "Does this solve the problem or describe it?",
+        "Who specifically benefits — and when?",
+        "Is this the shortest path to a real result?",
+        "Would this still matter next year?"
+    ],
+    ecology: ["River Cleanup Initiative", "Urban Permaculture", "Solar Grid Design", "Seed Bank Database", "Mycelium Networks"],
+    books: ["Atomic Habits", "Design of Everyday Things", "The Fair Play Deck", "Thinking, Fast and Slow", "Sapiens"],
+    events: ["Local Hackathon", "Tree Planting Drive", "Open Source Summit", "Yoga Retreat", "Maker Faire"],
+    organizations: ["OpenAI", "Linux Foundation", "Khel.o Trust", "Red Cross", "Local Library"],
+    research: ["Quantum Entanglement", "CRISPR Editing", "AGI Safety", "Sustainable Concrete", "Neuroplasticity"]
 };
 
-const WIKI_ARCHIVES = [
-    {cat: "Governance", url: "https://kids.miraheze.org/wiki/International_and_Inter_Government_sites", name: "Inter-Government Sites"},
-    {cat: "News", url: "https://kids.miraheze.org/wiki/List_of_News_and_Media_Aggregators", name: "News & Media 1"},
-    {cat: "News", url: "https://kids.miraheze.org/wiki/List_of_News_and_Media_Aggregators_2", name: "News & Media 2"},
-    {cat: "Education", url: "https://kids.miraheze.org/wiki/List_of_Educational,_Research_%26_Open_Knowledge_Aggregators", name: "Education & Research"},
-    {cat: "Finance", url: "https://kids.miraheze.org/wiki/List_of_Banking,_Finance,_Central_Banks_%26_Economic_Aggregators", name: "Banking & Finance"},
-    {cat: "Security", url: "https://kids.miraheze.org/wiki/List_of_Security,_Defense,_Police_%26_Emergency_Networks", name: "Security & Emergency"},
-    {cat: "Environment", url: "https://kids.miraheze.org/wiki/List_of_Environmental,_Climate_%26_Conservation_Networks", name: "Climate & Conservation"},
-    {cat: "Health", url: "https://kids.miraheze.org/wiki/List_of_Health,_Medical_%26_Humanitarian_Aid_Networks", name: "Health & Humanitarian"},
-    {cat: "Rights", url: "https://kids.miraheze.org/wiki/List_of_Human_or_Species_rights", name: "Human & Species Rights"},
-    {cat: "Tech", url: "https://kids.miraheze.org/wiki/List_of_Technology_and_Open_source_developers", name: "Tech & Open Source"},
-    {cat: "Culture", url: "https://kids.miraheze.org/wiki/List_of_Arts,_Culture,_Heritage_%26_Spiritual_Networks", name: "Arts & Spirituality"},
-    {cat: "Labor", url: "https://kids.miraheze.org/wiki/List_of_Labor,_Employment,_Trade_Unions_%26_Worker_Rights_Networks", name: "Labor & Trade Unions"},
-    {cat: "Sports", url: "https://kids.miraheze.org/wiki/List_of_Sports,_Recreation_%26_Olympic_Networks", name: "Sports & Olympics"},
-    {cat: "Transport", url: "https://kids.miraheze.org/wiki/List_of_Transportation,_Logistics_%26_Infrastructure_Networks", name: "Transport & Logistics"},
-    {cat: "Energy", url: "https://kids.miraheze.org/wiki/List_of_Energy,_Utilities_%26_Power_Grid_Networks", name: "Energy & Power Grids"},
-    {cat: "Urban", url: "https://kids.miraheze.org/wiki/List_of_Urban_Planning,_Smart_Cities,_Architecture_%26_Housing_Networks", name: "Urban & Smart Cities"},
-    {cat: "Space", url: "https://kids.miraheze.org/wiki/List_of_Space_Exploration,_Aerospace_%26_Astronomy_Networks", name: "Space & Astronomy"},
-    {cat: "Oceans", url: "https://kids.miraheze.org/wiki/List_of_Oceans,_Marine_Research,_Conservation_%26_Blue_Economy_Networks", name: "Oceans & Blue Economy"},
-    {cat: "Tourism", url: "https://kids.miraheze.org/wiki/List_of_Tourism,_Hospitality,_Travel_%26_Destination_Networks", name: "Tourism & Travel"},
-    {cat: "Telecom", url: "https://kids.miraheze.org/wiki/List_of_Telecommunications,_Mobile_Networks_%26_Global_Connectivity_Infrastructure", name: "Telecom & Connectivity"},
-    {cat: "Weather", url: "https://kids.miraheze.org/wiki/List_of_Meteorology,_Weather,_Climate_Monitoring_%26_Geohazards_Networks", name: "Meteorology & Weather"},
-    {cat: "Philanthropy", url: "https://kids.miraheze.org/wiki/List_of_Philanthropy,_Foundations_%26_Grant-Making_Networks", name: "Philanthropy & Grants"},
-    {cat: "Manufacturing", url: "https://kids.miraheze.org/wiki/List_of_Manufacturing,_Industry,_Robotics_%26_Global_Supply_Chain_Networks", name: "Manufacturing & Robotics"},
-    {cat: "Legal", url: "https://kids.miraheze.org/wiki/List_of_Legal,_Justice,_Bar_Associations_%26_Global_Law_Networks", name: "Legal & Justice"},
-    {cat: "Food", url: "https://kids.miraheze.org/wiki/List_of_Food,_Beverage,_FMCG_%26_Global_Consumer_Supply_Chain_Networks", name: "Food & FMCG"},
-    {cat: "Retail", url: "https://kids.miraheze.org/wiki/List_of_Retail,_E-commerce,_Consumer_Markets_%26_Global_Trade_Networks", name: "Retail & E-commerce"},
-    {cat: "Real Estate", url: "https://kids.miraheze.org/wiki/List_of_Real_Estate,_Construction,_Property_Markets_%26_PropTech_Networks", name: "Real Estate & PropTech"},
-    {cat: "Beliefs", url: "https://kids.miraheze.org/wiki/Evolution_of_Human_Beliefs,_Values,_and_Social_Organization", name: "Evolution of Beliefs"},
-    {cat: "Timeline", url: "https://kids.miraheze.org/wiki/Timeline_of_Human_Associations_and_Organizations", name: "Timeline of Associations"},
-    {cat: "Behavior", url: "https://kids.miraheze.org/wiki/Human_Behavior_and_Development", name: "Human Behavior"},
-    {cat: "IP & Media", url: "https://kids.miraheze.org/wiki/List_of_Intellectual_Property,_Media,_Insurance_%26_Aerospace/Defense_Networks", name: "IP, Media & Defense"},
-    {cat: "Biodiversity", url: "https://kids.miraheze.org/wiki/List_of_Species_Understanding,_Biodiversity_%26_Ecosystem_Networks", name: "Biodiversity & Ecosystems"},
-    {cat: "Ecology Funding", url: "https://kids.miraheze.org/wiki/List_of_Ecological_Funding,_Human_Evolution,_Consciousness_%26_Neural_Development_Networks", name: "Ecological Funding"}
-];
-
-const AMAZON_TAG = 'amazon0339f-21';
+// ==========================================
+// 2. DOM INITIALIZATION — unchanged dot/galaxy engine
+// ==========================================
+for (let i = 1; i <= 200; i++) {
+    let r = 5.5 * Math.sqrt(i);
+    let a = i * 137.508 * Math.PI / 180;
+    let radius = i < 15 ? 3 : 0.5 + (i / 150);
+    let dot = document.createElementNS("http://www.w3.org/2000/svg", 'circle');
+    dot.setAttribute("cx", 0); dot.setAttribute("cy", 0); dot.setAttribute("r", radius);
+    dot.classList.add('dot');
+    dot.tx = r * Math.cos(a); dot.ty = r * Math.sin(a);
+    dot.onmouseover = () => {
+        if (hub.classList.contains('expanded') && !isDragging && dot.dataset.title) {
+            guide.innerHTML = `✨ Discover: ${dot.dataset.title}`;
+            guide.style.color = "#fff";
+            if (Voice.readAloud) Voice.speak(dot.dataset.title);
+        }
+    };
+    dot.onmouseout = () => {
+        if (hub.classList.contains('expanded')) {
+            guide.innerHTML = `🌌 Exploring ${SOURCES[currentLayer].name} Dimension`;
+            guide.style.color = "rgba(212, 175, 55, 0.7)";
+        }
+    };
+    dot.onclick = (e) => { e.stopPropagation(); if (hub.classList.contains('expanded') && !hasDragged) { haptic(); SHOW(dot.dataset); } };
+    scene.appendChild(dot);
+    dots.push(dot);
+}
 
 // ==========================================
-// 2. DIS-PLAY ENGINE (Micro View & Accessibility)
+// 3. RECURSIVE ENGINE — unchanged
 // ==========================================
-const DP = {
-    isExploded: false,
-    nodes: [],
-    
-    init() {
-        document.getElementById('golden-seed').addEventListener('click', () => this.toggleSeed());
-    },
-
-    toggleSeed() {
-        if(this.isExploded) {
-            this.collapseSeed();
-        } else {
-            this.explodeSeed();
-        }
-    },
-
-    explodeSeed() {
-        this.isExploded = true;
-        const container = document.getElementById('seed-container');
-        document.getElementById('golden-seed').style.display = 'none';
-        
-        // Pick 12 random semantic nodes
-        const keys = Object.keys(SEMANTIC_MESH);
-        const selected = [];
-        while(selected.length < 12) {
-            const k = keys[Math.floor(Math.random() * keys.length)];
-            if(!selected.includes(k)) selected.push(k);
-        }
-
-        selected.forEach((key, i) => {
-            const angle = (i / 12) * Math.PI * 2;
-            const radius = 120 + (i % 3) * 40; // Fibonacci-like spacing
-            const x = Math.cos(angle) * radius;
-            const y = Math.sin(angle) * radius;
-            
-            const icons = ['🌱', '🌍', '🧠', '🤝', '🕊️', '🔥', '💧', '🎨', '🔭', '🏛️', '🧬', '🎵'];
-            
-            const node = document.createElement('div');
-            node.className = 'fib-node';
-            node.style.transform = `translate(-50%, -50%) translate(${x}px, ${y}px) scale(0)`;
-            node.innerHTML = `${icons[i]}<div class="tooltip">${SEMANTIC_MESH[key]}</div>`;
-            node.dataset.key = key;
-            node.addEventListener('click', () => this.resolveSingularity(key));
-            
-            container.appendChild(node);
-            this.nodes.push(node);
-            
-            // Animate in
-            setTimeout(() => {
-                node.style.transform = `translate(-50%, -50%) translate(${x}px, ${y}px) scale(1)`;
-            }, i * 50);
+async function NEXT(layer) {
+    document.getElementById('msg').classList.remove('active');
+    currentLayer = layer;
+    guide.innerHTML = `🌀 Aligning ${SOURCES[layer].name} matrix...`;
+    if (Voice.readAloud) Voice.speak(`Aligning ${SOURCES[layer].name}`);
+    dots.forEach(el => { el.setAttribute("cx", 0); el.setAttribute("cy", 0); });
+    setTimeout(() => {
+        let layerColor = SOURCES[layer].color;
+        let keys = Object.keys(SOURCES);
+        dots.forEach((dot, i) => {
+            dot.style.fill = layerColor;
+            dot.style.opacity = 0.3 + (Math.random() * 0.7);
+            let nextRecursion = keys[Math.floor(Math.random() * keys.length)];
+            let titleSource = MOCK_DATA[layer] || MOCK_DATA.research;
+            let mockTitle = titleSource[i % titleSource.length];
+            dot.dataset.icon = SOURCES[layer].icon;
+            dot.dataset.title = i < 15 ? mockTitle : `${SOURCES[layer].name} Fragment #${i}`;
+            dot.dataset.description = `Encrypted databank for ${layer} protocol. Signature ${Math.random().toString(36).substr(2, 5)}.`;
+            dot.dataset.related = nextRecursion;
+            dot.dataset.layerColor = layerColor;
         });
-        
-        this.speak("The semantic mesh is awake. Select a node to resolve your singularity.");
-        if(navigator.vibrate) navigator.vibrate(50);
-    },
-
-    collapseSeed() {
-        this.isExploded = false;
-        this.nodes.forEach(n => n.remove());
-        this.nodes = [];
-        document.getElementById('golden-seed').style.display = 'flex';
-    },
-
-    resolveSingularity(key) {
-        const concept = SEMANTIC_MESH[key];
-        const path = key.split('.').map((k, i) => {
-            const searchKey = key.split('.').slice(0, i+1).join('.');
-            return SEMANTIC_MESH[searchKey] || k;
-        }).join(' / ');
-
-        // Generate Komute (Maps) Link
-        const mapsQuery = encodeURIComponent(concept.replace(/_/g, ' ') + ' community center');
-        const komuteUrl = `https://www.google.com/maps/search/${mapsQuery}`;
-        
-        // Generate Amazon Link
-        const amzQuery = encodeURIComponent(concept.replace(/_/g, ' '));
-        const amzUrl = `https://www.amazon.com/s?k=${amzQuery}&tag=${AMAZON_TAG}`;
-
-        // Populate Modal
-        document.getElementById('sing-path').innerText = path.toUpperCase();
-        document.getElementById('sing-msg').innerText = `You have aligned with the frequency of "${concept.replace(/_/g, ' ')}". The physical mesh is calling. Walk to the nearest assembly point or gather the tools to begin.`;
-        document.getElementById('sing-komute').href = komuteUrl;
-        document.getElementById('sing-amazon').href = amzUrl;
-        
-        document.getElementById('singularity-modal').classList.add('active');
-        
-        // Speak the outcome
-        this.speak(`Singularity resolved. You have aligned with ${concept.replace(/_/g, ' ')}. Opening coordinates.`);
-        if(navigator.vibrate) navigator.vibrate([100, 50, 100]);
-    },
-
-    closeSingularity() {
-        document.getElementById('singularity-modal').classList.remove('active');
-        this.collapseSeed();
-    },
-
-    showArchives() {
-        const list = document.getElementById('panel-list');
-        list.innerHTML = WIKI_ARCHIVES.map(w => `
-            <a href="${w.url}" target="_blank" class="row">
-                <div>
-                    <div class="rname">${w.name}</div>
-                    <div class="rtype">${w.cat}</div>
-                </div>
-                <div style="color:var(--accent);">↗</div>
-            </a>
-        `).join('');
-        
-        if(!A.s.panelOpen) A.togglePanel();
-        this.speak("Earth Org Archives opened. 29 global networks available.");
-    },
-
-    speak(text) {
-        if('speechSynthesis' in window) {
-            speechSynthesis.cancel();
-            const msg = new SpeechSynthesisUtterance(text);
-            msg.rate = 0.95; msg.pitch = 1; msg.volume = 0.8;
-            speechSynthesis.speak(msg);
+        if (hub.classList.contains('expanded')) {
+            dots.forEach(el => { el.setAttribute("cx", el.tx); el.setAttribute("cy", el.ty); });
+            guide.innerHTML = `🌌 Exploring ${SOURCES[layer].name} Dimension`;
         }
-    },
+    }, 1000);
+}
 
-    listen() {
-        const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if(!SR) {
-            this.speak("Voice recognition not supported in this browser.");
-            return;
-        }
-        const rec = new SR();
-        rec.lang = 'en-US';
-        rec.onstart = () => this.speak("Listening for your command.");
-        rec.onresult = (e) => {
-            const cmd = e.results[0][0].transcript.toLowerCase();
-            if(cmd.includes('seed') || cmd.includes('roll') || cmd.includes('awaken')) this.explodeSeed();
-            else if(cmd.includes('archive') || cmd.includes('wiki') || cmd.includes('earth org')) this.showArchives();
-            else if(cmd.includes('close') || cmd.includes('collapse')) this.collapseSeed();
-            else this.speak(`I heard ${cmd}. Try saying: Awaken, Archives, or Close.`);
+// ==========================================
+// 4. UNIVERSAL UI & GATEWAYS — unchanged
+// ==========================================
+function SHOW(data) {
+    const content = document.getElementById('msg-content');
+    content.innerHTML = `
+        <h2>${data.icon} ${data.title}</h2>
+        <p>${data.description}</p>
+        <div class="btn-container">
+            <button onclick="document.getElementById('msg').classList.remove('active')">Close</button>
+            <button class="btn-primary" onclick="NEXT('${data.related}')" style="border-color:${data.layerColor}; color:${data.layerColor}">
+                Explore ${data.related.toUpperCase()}
+            </button>
+        </div>`;
+    document.getElementById('msg').classList.add('active');
+    if (Voice.readAloud) Voice.speak(`${data.title}. ${data.description}`);
+}
+
+// ----------------------------------------------------------
+// The dice's own pop-out — a real starting menu instead of a
+// silent collapse/jump. Voice ("the ear") lives here directly,
+// alongside the same actions the Pentagon Tray offers, so the
+// center of the design and the floating tray stay in sync.
+// ----------------------------------------------------------
+function openDiceHub() {
+    haptic();
+    const content = document.getElementById('msg-content');
+    const voiceLabel = Voice.enabled ? '🔇 Stop Listening' : '🎙️ Voice (the Ear)';
+    let buttons = '';
+    buttons += `<button class="btn-primary" onclick="document.getElementById('msg').classList.remove('active'); Pentagon.rollDice();">🌀 Surprise Me</button>`;
+    buttons += `<button onclick="document.getElementById('msg').classList.remove('active'); Pentagon.jumpContribution();">🤲 Contribution</button>`;
+    buttons += `<button onclick="document.getElementById('msg').classList.remove('active'); Pentagon.jumpRelevance();">🎯 Relevance</button>`;
+    buttons += `<button onclick="document.getElementById('msg').classList.remove('active'); Pentagon.openSearch();">🔍 Search</button>`;
+    buttons += `<button onclick="document.getElementById('msg').classList.remove('active'); Pentagon.openLibrary();">📖 Library</button>`;
+    buttons += `<button onclick="Voice.enabled ? Voice.stop() : Voice.start(); openDiceHub();">${voiceLabel}</button>`;
+    buttons += `<button onclick="document.getElementById('msg').classList.remove('active'); Pentagon.openSettings();">⚙️ Settings</button>`;
+    buttons += currentLayer !== 'cosmos'
+        ? `<button onclick="document.getElementById('msg').classList.remove('active'); NEXT('cosmos');">🏠 Cosmos</button>`
+        : `<button onclick="document.getElementById('msg').classList.remove('active'); toggleExpansion();">🌱 Collapse</button>`;
+    content.innerHTML = `
+        <h2>🎲 Knowledge Dice</h2>
+        <p style="font-size:0.8rem; color:#aaa; margin-bottom:16px;">
+            <strong style="color:#fcd34d;">🤲 Contribution</strong> — what outlasts your effort &nbsp;|&nbsp;
+            <strong style="color:#f97316;">🎯 Relevance</strong> — is this the right action?
+        </p>
+        <div class="btn-container">${buttons}</div>`;
+    document.getElementById('msg').classList.add('active');
+}
+
+function createGatewayNode(tx, ty, r, iconText, targetLayer, className) {
+    let wrapper = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    wrapper.classList.add('node-wrapper');
+    wrapper.style.transform = "translate(0px, 0px) scale(0)";
+    wrapper.tx = tx; wrapper.ty = ty;
+    let content = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    content.classList.add('node-content', className);
+    let bg = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    bg.setAttribute("r", r);
+    let text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    text.setAttribute("text-anchor", "middle"); text.setAttribute("dominant-baseline", "central");
+    text.setAttribute("font-size", r * 1.2); text.textContent = iconText;
+    content.appendChild(bg); content.appendChild(text); wrapper.appendChild(content);
+    content.onmouseover = () => { if (hub.classList.contains('expanded') && !isDragging) guide.innerHTML = `✨ Enter ${SOURCES[targetLayer].name}`; };
+    content.onmouseout = () => { if (hub.classList.contains('expanded') && !isDragging) guide.innerHTML = `🌌 Exploring ${SOURCES[currentLayer].name} Dimension`; };
+    content.onclick = (e) => { e.stopPropagation(); if (hub.classList.contains('expanded') && !hasDragged) { haptic(); NEXT(targetLayer); } };
+    scene.appendChild(wrapper);
+    nodes.push(wrapper);
+}
+const gatewayKeys = Object.keys(SOURCES).filter(k => k !== 'cosmos');
+for (let i = 0; i < 5; i++) {
+    let a = (i * 72 - 90) * (Math.PI / 180);
+    createGatewayNode(85 * Math.cos(a), 85 * Math.sin(a), 16, SOURCES[gatewayKeys[i]].icon, gatewayKeys[i], 'outer-node');
+}
+let centerNode = document.createElementNS("http://www.w3.org/2000/svg", "g");
+centerNode.classList.add('center-node');
+centerNode.innerHTML = `<circle cx="0" cy="0" r="22"/><text x="0" y="0" text-anchor="middle" dominant-baseline="central" font-size="24">🎲</text>`;
+centerNode.onmouseover = () => { if (hub.classList.contains('expanded') && !isDragging) guide.innerHTML = `🎲 Open the Knowledge Dice`; };
+centerNode.onclick = (e) => {
+    e.stopPropagation();
+    if (hasDragged) return;
+    if (!hub.classList.contains('expanded')) { toggleExpansion(); setTimeout(openDiceHub, 900); return; }
+    openDiceHub();
+};
+scene.appendChild(centerNode);
+
+function toggleExpansion() {
+    let expand = hub.classList.contains('ready') || hub.classList.contains('idle');
+    hub.className = expand ? 'expanded' : 'ready';
+    guide.innerHTML = expand ? `🌌 Exploring ${SOURCES[currentLayer].name} Dimension` : "✨ Touch the seed to expand";
+    guide.style.opacity = expand ? "0.8" : "1";
+    dots.forEach(el => { el.setAttribute("cx", expand ? el.tx : 0); el.setAttribute("cy", expand ? el.ty : 0); });
+    nodes.forEach(el => { el.style.transform = expand ? `translate(${el.tx}px, ${el.ty}px) scale(1)` : `translate(0px, 0px) scale(0)`; });
+}
+
+// ==========================================
+// 5. PHYSICS & 3D ZOOM ENGINE — unchanged
+// ==========================================
+let isDragging = false, hasDragged = false, lastX, lastY, rotX = 0, rotY = 0, idleTimer;
+let zoomEnergy = 1;
+const resetIdle = () => {
+    clearTimeout(idleTimer);
+    if (hub.className === 'idle') { hub.className = 'ready'; guide.innerHTML = "✨ Touch the seed to expand"; }
+    idleTimer = setTimeout(() => { if (hub.className === 'ready') { hub.className = 'idle'; guide.innerHTML = "🌱 Awaken the Seed"; } }, 10000);
+};
+const moveEngine = (e) => {
+    resetIdle();
+    let x = e.touches ? e.touches[0].clientX : e.clientX;
+    let y = e.touches ? e.touches[0].clientY : e.clientY;
+    if (hub.classList.contains('expanded') && !isDragging) {
+        let centerX = window.innerWidth / 2, centerY = window.innerHeight / 2;
+        rotY += ((x - centerX) * 0.05 - rotY) * 0.05;
+        rotX -= ((y - centerY) * 0.05 + rotX) * 0.05;
+    }
+    if (!isDragging) return;
+    if (!lastX) { lastX = x; lastY = y; return; }
+    let dx = x - lastX; let dy = y - lastY;
+    if (Math.abs(dx) > 2 || Math.abs(dy) > 2) hasDragged = true;
+    rotY += dx * 0.8; rotX -= dy * 0.8;
+    zoomEnergy = 1 + Math.abs(dx) / 500;
+    lastX = x; lastY = y;
+};
+function autoSpin() {
+    if (!isDragging) {
+        zoomEnergy += (1 - zoomEnergy) * 0.1;
+        if (!hub.classList.contains('expanded')) { rotY += 0.2; rotX += 0.1; }
+    }
+    scene.style.transform = `rotateX(${rotX}deg) rotateY(${rotY}deg) scale(${zoomEnergy})`;
+    requestAnimationFrame(autoSpin);
+}
+window.addEventListener('mousemove', moveEngine);
+window.addEventListener('touchmove', moveEngine, { passive: false });
+window.addEventListener('mouseup', () => { setTimeout(() => isDragging = false, 50); lastX = null; });
+window.addEventListener('touchend', () => { setTimeout(() => isDragging = false, 50); lastX = null; });
+hub.addEventListener('mousedown', () => { isDragging = true; hasDragged = false; });
+hub.addEventListener('touchstart', () => { isDragging = true; hasDragged = false; }, { passive: true });
+
+// ============================================================
+// 6. PENTAGON TRAY — new control layer
+//    Draggable (mouse/touch) + pinch/wheel resizable, same
+//    mechanics as the Khel.o build, restyled to this file's
+//    gold/black theme. The dice core is a "surprise" jump into
+//    a random layer — distinct from the galaxy's own center
+//    node, which still does collapse/expand as before.
+// ============================================================
+const Pentagon = {
+    state: { scale: 1, isDragging: false, hasDragged: false, startX: 0, startY: 0, left: 0, top: 0, pinchDist: 0 },
+
+    init: function() {
+        const el = document.getElementById('pentagon-wrap');
+        el.style.left = `calc(50% - 70px)`;
+        el.style.bottom = '40px';
+
+        el.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 2) { this.state.pinchDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY); }
+        }, { passive: true });
+        el.addEventListener('touchmove', (e) => {
+            if (e.touches.length === 2 && this.state.pinchDist > 0) {
+                e.preventDefault();
+                const d = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+                this.state.scale = Math.max(0.5, Math.min(2.2, this.state.scale * (d / this.state.pinchDist)));
+                el.style.setProperty('--pentagon-scale', this.state.scale);
+                this.state.pinchDist = d;
+            }
+        }, { passive: false });
+        el.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            this.state.scale = Math.max(0.5, Math.min(2.2, this.state.scale + (e.deltaY < 0 ? 0.05 : -0.05)));
+            el.style.setProperty('--pentagon-scale', this.state.scale);
+        }, { passive: false });
+
+        const dragStart = (e) => {
+            if (e.target.closest('.pquad') || e.target.closest('.pcore') || e.touches?.length === 2) return;
+            this.state.hasDragged = false;
+            this.state.startX = e.type === 'touchstart' ? e.touches[0].clientX : e.clientX;
+            this.state.startY = e.type === 'touchstart' ? e.touches[0].clientY : e.clientY;
+            const rect = el.getBoundingClientRect();
+            this.state.left = rect.left; this.state.top = rect.top;
+            el.style.left = this.state.left + 'px'; el.style.top = this.state.top + 'px'; el.style.bottom = 'auto';
+            document.addEventListener('mousemove', dragMove, { passive: false });
+            document.addEventListener('touchmove', dragMove, { passive: false });
+            document.addEventListener('mouseup', dragEnd);
+            document.addEventListener('touchend', dragEnd);
         };
-        rec.start();
+        const dragMove = (e) => {
+            if (e.touches?.length === 2) return;
+            const cx = e.type === 'touchmove' ? e.touches[0].clientX : e.clientX;
+            const cy = e.type === 'touchmove' ? e.touches[0].clientY : e.clientY;
+            if (Math.abs(cx - this.state.startX) > 6 || Math.abs(cy - this.state.startY) > 6) this.state.hasDragged = true;
+            if (this.state.hasDragged) {
+                e.preventDefault();
+                let nl = this.state.left + (cx - this.state.startX), nt = this.state.top + (cy - this.state.startY);
+                nl = Math.max(0, Math.min(nl, window.innerWidth - el.offsetWidth));
+                nt = Math.max(0, Math.min(nt, window.innerHeight - el.offsetHeight));
+                el.style.left = nl + 'px'; el.style.top = nt + 'px';
+            }
+        };
+        const dragEnd = () => {
+            document.removeEventListener('mousemove', dragMove); document.removeEventListener('touchmove', dragMove);
+            document.removeEventListener('mouseup', dragEnd); document.removeEventListener('touchend', dragEnd);
+            if (this.state.hasDragged) { el.setAttribute('data-dragged', 'true'); setTimeout(() => el.removeAttribute('data-dragged'), 100); }
+        };
+        el.addEventListener('mousedown', dragStart, { passive: false });
+        el.addEventListener('touchstart', dragStart, { passive: false });
+
+        this.loadConfig();
+        Ext.renderList();
+    },
+
+    tap: function(el, action) {
+        if (document.getElementById('pentagon-wrap').getAttribute('data-dragged') === 'true') return;
+        haptic();
+        if (typeof this[action] === 'function') this[action]();
+    },
+
+    open: function(id) { document.getElementById(id).classList.add('active'); },
+    close: function(id) { document.getElementById(id).classList.remove('active'); },
+
+    rollDice: function() {
+        const core = document.getElementById('pcore');
+        core.classList.add('rolling');
+        const layers = Object.keys(SOURCES);
+        const pick = layers[Math.floor(Math.random() * layers.length)];
+        setTimeout(() => { core.classList.remove('rolling'); if (!hub.classList.contains('expanded')) toggleExpansion(); NEXT(pick); }, 400);
+    },
+
+    jumpContribution: function() { if (!hub.classList.contains('expanded')) toggleExpansion(); NEXT('contribution'); },
+    jumpRelevance:    function() { if (!hub.classList.contains('expanded')) toggleExpansion(); NEXT('relevance'); },
+
+    openSearch: function() { this.open('panel-search'); document.getElementById('search-input').focus(); },
+    openLibrary: function() {
+        const body = document.getElementById('library-body');
+        body.innerHTML = Object.keys(SOURCES).filter(k => k !== 'cosmos').map(key => {
+            const items = MOCK_DATA[key] || [];
+            return `<h3 style="color:${SOURCES[key].color}; font-weight:400; margin:18px 0 8px;">${SOURCES[key].icon} ${SOURCES[key].name}</h3>` +
+                items.map(t => `<div class="result-row" style="cursor:pointer;" onclick="NEXT('${key}'); Pentagon.close('panel-library'); if(!hub.classList.contains('expanded')) toggleExpansion();"><div><a>${t}</a><p>Tap to jump into the ${SOURCES[key].name} dimension</p></div></div>`).join('');
+        }).join('');
+        this.open('panel-library');
+    },
+    openSettings: function() { Ext.renderList(); this.open('panel-settings'); },
+
+    // ---------- search: kids.miraheze keyword search + event-site deep links ----------
+    runSearch: async function() {
+        const q = document.getElementById('search-input').value.trim();
+        const results = document.getElementById('search-results');
+        if (!q) return;
+        results.innerHTML = `<p style="color:#888; font-size:0.85rem;">Searching...</p>`;
+        let html = '';
+        try {
+            const res = await fetch(`https://kids.miraheze.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(q)}&format=json&origin=*`);
+            const data = await res.json();
+            const hits = (data.query?.search || []).slice(0, 6);
+            if (hits.length) {
+                html += `<h3 style="color:var(--gold); font-weight:400; margin-bottom:10px;">📚 Kids Wiki</h3>`;
+                html += hits.map(h => `<div class="result-row"><div><a href="https://kids.miraheze.org/wiki/${encodeURIComponent(h.title.replace(/ /g,'_'))}" target="_blank">${h.title}</a><p>${h.snippet.replace(/<[^>]*>?/gm,'')}</p></div></div>`).join('');
+            }
+        } catch (e) { html += `<p style="color:#888; font-size:0.8rem;">Wiki search unavailable right now.</p>`; }
+        // Event-site deep links — there's no single free API that searches every event platform at
+        // once, so this builds direct search URLs to a few real ones instead of pretending to merge them.
+        html += `<h3 style="color:var(--cyan); font-weight:400; margin:18px 0 10px;">📅 Event Sites</h3>`;
+        [
+            { name: 'Eventbrite', url: `https://www.eventbrite.com/d/online/${encodeURIComponent(q)}/` },
+            { name: 'Meetup', url: `https://www.meetup.com/find/?keywords=${encodeURIComponent(q)}` },
+            { name: 'AllEvents', url: `https://allevents.in/search?q=${encodeURIComponent(q)}` }
+        ].forEach(s => { html += `<div class="result-row"><div><a href="${s.url}" target="_blank">Search "${q}" on ${s.name}</a></div></div>`; });
+        results.innerHTML = html;
+    },
+
+    // ---------- config (saved to this browser only, never to the repo) ----------
+    saveConfig: function() {
+        const cfg = {
+            amazon: document.getElementById('cfg-amazon').value.trim(),
+            upi: document.getElementById('cfg-upi').value.trim(),
+            neo4jUri: document.getElementById('cfg-neo4j-uri').value.trim(),
+            aiKey: document.getElementById('cfg-ai-key').value.trim()
+        };
+        localStorage.setItem('khelo_pentagon_config', JSON.stringify(cfg));
+        this.renderUpiQr(cfg.upi);
+    },
+    loadConfig: function() {
+        try {
+            const cfg = JSON.parse(localStorage.getItem('khelo_pentagon_config') || '{}');
+            if (cfg.amazon) document.getElementById('cfg-amazon').value = cfg.amazon;
+            if (cfg.upi) { document.getElementById('cfg-upi').value = cfg.upi; this.renderUpiQr(cfg.upi); }
+            if (cfg.neo4jUri) document.getElementById('cfg-neo4j-uri').value = cfg.neo4jUri;
+            if (cfg.aiKey) document.getElementById('cfg-ai-key').value = cfg.aiKey;
+        } catch (e) {}
+    },
+    renderUpiQr: function(payeeId) {
+        const area = document.getElementById('upi-qr-area');
+        if (!payeeId) { area.innerHTML = ''; return; }
+        const upiUri = `upi://pay?pa=${encodeURIComponent(payeeId)}&pn=Khelo&cu=INR`;
+        // Uses a free public QR-rendering API rather than a from-scratch encoder — swap for a
+        // local QR library if fully offline support matters more than simplicity here.
+        const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(upiUri)}`;
+        area.innerHTML = `<p style="font-size:0.8rem; color:#999; margin-bottom:8px;">UPI QR (scan with any UPI app):</p><img src="${qrUrl}" style="border-radius:12px; border:1px solid rgba(212,175,55,0.25);">`;
+    },
+
+    // ---------- voice ----------
+    toggleVoice: function() { Voice.enabled ? Voice.stop() : Voice.start(); }
+};
+
+// ============================================================
+// 7. VOICE — real Web Speech API, off by default
+//    Speaks node titles aloud when readAloud is on, and listens
+//    for a layer name to jump straight there hands-free. This is
+//    the honest, working version of "the ear" — built on the
+//    browser's own accessibility APIs, not a custom invention.
+// ============================================================
+const Voice = {
+    recognition: null, enabled: false, readAloud: false,
+    init: function() {
+        const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SR) return false;
+        this.recognition = new SR();
+        this.recognition.continuous = true;
+        this.recognition.interimResults = false;
+        this.recognition.lang = 'en-IN';
+        this.recognition.onresult = (e) => {
+            const said = e.results[e.results.length - 1][0].transcript.toLowerCase();
+            const match = Object.keys(SOURCES).find(k => said.includes(k));
+            if (match) { this.speak(`Opening ${SOURCES[match].name}`); if (!hub.classList.contains('expanded')) toggleExpansion(); NEXT(match); }
+        };
+        this.recognition.onerror = () => { this.stop(); };
+        this.recognition.onend = () => { if (this.enabled) this.recognition.start(); };
+        return true;
+    },
+    start: function() {
+        if (!this.recognition && !this.init()) { guide.innerHTML = '⚠️ Voice not supported in this browser'; return; }
+        try { this.recognition.start(); } catch (e) {}
+        this.enabled = true; this.readAloud = true;
+        document.getElementById('voice-indicator').classList.add('live');
+        this.speak('Voice mode on. Say a category like ecology, books, or events.');
+    },
+    stop: function() {
+        if (this.recognition) try { this.recognition.stop(); } catch (e) {}
+        this.enabled = false; this.readAloud = false;
+        document.getElementById('voice-indicator').classList.remove('live');
+    },
+    speak: function(text) {
+        if (!window.speechSynthesis) return;
+        speechSynthesis.cancel();
+        speechSynthesis.speak(new SpeechSynthesisUtterance(text));
     }
 };
 
-// ==========================================
-// 3. APHELION COSMIC ENGINE (Macro View)
-// ==========================================
-const A = {
-  s:{ scene:null,camera:null,renderer:null,controls:null,raycaster:null,mouse:null,
-      bodies:[],labels:[],focused:null,zooming:false,
-      stack:['root'],panelOpen:true,fibScale:46,fib:[1,2,3,5,8,13,21,34,55,89,144] },
+// ============================================================
+// 8. EXTENSION REGISTRY — same toggle pattern as the Khel.o build,
+//    so a new feature anywhere in this project follows one rule.
+// ============================================================
+// ----------------------------------------------------------
+// Small shared helper so any tap across the app — dots, gateway
+// nodes, the dice, the Pentagon Tray — can give the same gentle
+// vibration on devices that support it. Gated by the extension
+// toggle below, same pattern as everything else in this file.
+// ----------------------------------------------------------
+function haptic(ms = 10) { if (Ext.list.haptics?.on && navigator.vibrate) navigator.vibrate(ms); }
 
-  COSMIC_DATA:[
-    {id:'mercury',fibIdx:1,name:'Mercury',color:0xa9a9a9,size:1,speed:1.2,fact:'Smallest planet — a day here outlasts its year.'},
-    {id:'venus',fibIdx:2,name:'Venus',color:0xe6c27a,size:2.8,speed:.9,fact:'Hottest planet, via a runaway greenhouse effect.'},
-    {id:'earth',fibIdx:3,name:'Earth',color:0x2266cc,size:3,speed:.6,fact:'The only known world with oceans and life.',subNodes:[
-      {id:'jwst',type:'Telescope',name:'James Webb',color:0xffd76b,size:.5,orbitDist:9,orbitSpeed:1,fact:'1.5M km out, reading light from the first galaxies.'},
-      {id:'hubble',type:'Telescope',name:'Hubble',color:0xcfd6e0,size:.32,orbitDist:4.4,orbitSpeed:2.4,fact:'In orbit since 1990 — 1.5M+ observations.'},
-      {id:'moon',type:'Moon',name:'Luna',color:0xaaaaaa,size:.8,orbitDist:13,orbitSpeed:.8,fact:'The only other world humans have walked on.'}]},
-    {id:'mars',fibIdx:4,name:'Mars',color:0xc1440e,size:2,speed:.4,fact:'The Red Planet — dust storms and the solar system’s tallest volcano.',subNodes:[
-      {id:'perseverance',type:'Rover',name:'Perseverance',color:0xffffff,size:.2,orbitDist:2.3,orbitSpeed:0,fact:'Landed Feb 18, 2021 in Jezero Crater.'},
-      {id:'ingenuity',type:'Drone',name:'Ingenuity',color:0xeeeeee,size:.1,orbitDist:2.45,orbitSpeed:.15,fact:'First powered flight on another planet.'}]},
-    {id:'jupiter',fibIdx:5,name:'Jupiter',color:0xd4a373,size:8.5,speed:.2,fact:'Largest planet — the Great Red Spot dwarfs Earth.'},
-    {id:'saturn',fibIdx:6,name:'Saturn',color:0xe6c87c,size:7,speed:.15,hasRing:true,fact:'Rings of ice and rock, dust-sized to house-sized.',subNodes:[
-      {id:'cassini',type:'Orbiter',name:'Cassini',color:0xb8c0cc,size:.4,orbitDist:9,orbitSpeed:1.4,fact:'Orbited Saturn 13 years before its final plunge.'},
-      {id:'titan',type:'Moon',name:'Titan',color:0xffcc88,size:1.2,orbitDist:19,orbitSpeed:.8,fact:'Rivers and rain — of liquid methane.'}]},
-    {id:'uranus',fibIdx:7,name:'Uranus',color:0x7ec8e3,size:4.5,speed:.1,fact:'Spins on its side, axis tilted ~98°.'},
-    {id:'neptune',fibIdx:8,name:'Neptune',color:0x3c4edb,size:4.3,speed:.08,fact:'Windiest planet — storms over 2,000 km/h.'},
-    {id:'pluto',fibIdx:9,name:'Pluto',color:0xd9cfc6,size:1.2,speed:.05,fact:'Reclassified dwarf planet in 2006.',subNodes:[
-      {id:'newhorizons',type:'Probe',name:'New Horizons',color:0xeeeeee,size:.3,orbitDist:3.4,orbitSpeed:4.6,fact:'9.5 years to reach Pluto, then flew on.'}]}
-  ],
-
-  MISSIONS:[
-    {id:'mars-edl',num:'01',title:'Land a Rover',sub:'Step through Perseverance’s descent to Mars.',target:'mars',finalId:'perseverance',finalOff:{x:.8,y:.4,z:.8},finalHold:3.5,finalCap:'Touchdown — Jezero Crater, Mars',
-      stages:[{cam:{x:11,y:7,z:11},look:{x:0,y:0,z:0},dur:3,cap:'Entry Interface — 125 km altitude'},
-               {cam:{x:6,y:4,z:6},look:{x:0,y:0,z:0},dur:3,cap:'Parachute Deploy — supersonic to subsonic'},
-               {cam:{x:3.2,y:1.8,z:3.2},look:{x:0,y:0,z:0},dur:2.6,cap:'Sky Crane Maneuver — powered descent'}]},
-    {id:'pluto-flyby',num:'02',title:'Pluto First Pic',sub:'New Horizons’ historic 2015 flyby.',target:'pluto',finalId:'newhorizons',finalOff:{x:1.3,y:.6,z:1.3},finalHold:3.5,finalCap:'First Clear Images of Pluto — July 14, 2015',
-      stages:[{cam:{x:16,y:5,z:0},look:{x:0,y:0,z:0},dur:3,cap:'New Horizons — nine years, 3 billion miles out'},
-               {cam:{x:6.5,y:2,z:0},look:{x:0,y:0,z:0},dur:3,cap:'Closest Approach — 12,500 km above the surface'}]}
-  ],
-
-  init(){
-    const s=this.s, c=document.getElementById('canvas-container');
-    s.scene=new THREE.Scene();
-    s.camera=new THREE.PerspectiveCamera(45,innerWidth/innerHeight,.1,60000);
-    s.renderer=new THREE.WebGLRenderer({antialias:true,alpha:true,powerPreference:'high-performance'});
-    s.renderer.setSize(innerWidth,innerHeight); s.renderer.setPixelRatio(Math.min(devicePixelRatio,2));
-    c.appendChild(s.renderer.domElement);
-    s.controls=new THREE.OrbitControls(s.camera,s.renderer.domElement);
-    s.controls.enableDamping=true; s.controls.dampingFactor=.06; s.controls.minDistance=2; s.controls.maxDistance=16000;
-    s.raycaster=new THREE.Raycaster(); s.mouse=new THREE.Vector2();
-    s.scene.add(new THREE.AmbientLight(0x14182a,1.1));
-    s.scene.add(new THREE.PointLight(0xffeedd,3.2,12000));
-    this.starfield(); this.buildCosmos(); this.buildMissionBar(); this.renderPanel();
-    c.addEventListener('click',e=>this.onClick(e));
-    window.addEventListener('resize',()=>{ s.camera.aspect=innerWidth/innerHeight; s.camera.updateProjectionMatrix(); s.renderer.setSize(innerWidth,innerHeight); });
-    requestAnimationFrame(()=>this.loop());
-    setTimeout(()=>this.resetCamera(true),300);
-  },
-
-  starfield(){
-    const pts=[]; for(let i=0;i<4200;i++){ const r=3200+Math.random()*6000, t=Math.random()*Math.PI*2, p=Math.acos(Math.random()*2-1);
-      pts.push(r*Math.sin(p)*Math.cos(t), r*Math.cos(p), r*Math.sin(p)*Math.sin(t)); }
-    const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.Float32BufferAttribute(pts,3));
-    s.scene.add(new THREE.Points(g,new THREE.PointsMaterial({color:0x88ccff,size:2.6,transparent:true,opacity:.55})));
-  },
-
-  buildCosmos(){
-    const s=this.s;
-    const sun=new THREE.Mesh(new THREE.SphereGeometry(30,64,64),new THREE.MeshBasicMaterial({color:0xffaa33}));
-    sun.userData.body={mesh:sun,data:{id:'sun',name:'Sun',size:30,fact:'A G-type star — 99.8% of the solar system’s mass.'},isSub:false};
-    s.scene.add(sun); s.bodies.push(sun.userData.body); this.label(sun,'Sun','planet-label');
-
-    this.COSMIC_DATA.forEach(sys=>{
-      const r=s.fib[sys.fibIdx]*s.fibScale;
-      const ring=new THREE.Mesh(new THREE.RingGeometry(r-.5,r+.5,128),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.035,side:THREE.DoubleSide}));
-      ring.rotation.x=Math.PI/2; s.scene.add(ring);
-
-      const mat=sys.id==='earth' ? new THREE.MeshPhongMaterial({color:sys.color,specular:0x333333,shininess:25}) : new THREE.MeshStandardMaterial({color:sys.color,roughness:.7});
-      const pMesh=new THREE.Mesh(new THREE.SphereGeometry(sys.size,32,32),mat);
-      if(sys.hasRing){ const sr=new THREE.Mesh(new THREE.RingGeometry(sys.size*1.5,sys.size*3,64),new THREE.MeshBasicMaterial({color:0xe6c87c,side:THREE.DoubleSide,transparent:true,opacity:.5})); sr.rotation.x=Math.PI/2.2; pMesh.add(sr); }
-      const a0=Math.random()*Math.PI*2; pMesh.position.set(r*Math.cos(a0),0,r*Math.sin(a0));
-      const hit=new THREE.Mesh(new THREE.SphereGeometry(sys.size*3,12,12),new THREE.MeshBasicMaterial({visible:false})); pMesh.add(hit);
-      const pBody={mesh:pMesh,hit,data:sys,angle:a0,isSub:false};
-      hit.userData.body=pBody; pMesh.userData.body=pBody;
-      s.scene.add(pMesh); s.bodies.push(pBody); this.label(pMesh,sys.name,'planet-label');
-
-      (sys.subNodes||[]).forEach(sub=>{
-        const geo=sub.type==='Telescope'?new THREE.CylinderGeometry(sub.size,sub.size,sub.size*2,6):sub.type==='Rover'?new THREE.BoxGeometry(sub.size,sub.size,sub.size):new THREE.SphereGeometry(sub.size,16,16);
-        const sMesh=new THREE.Mesh(geo,new THREE.MeshStandardMaterial({color:sub.color,roughness:.5,metalness:.5}));
-        const sHit=new THREE.Mesh(new THREE.SphereGeometry(sub.size*4,8,8),new THREE.MeshBasicMaterial({visible:false})); sMesh.add(sHit);
-        s.scene.add(sMesh);
-        const sBody={mesh:sMesh,hit:sHit,data:sub,angle:Math.random()*Math.PI*2,isSub:true,parent:pBody};
-        sHit.userData.body=sBody; sMesh.userData.body=sBody;
-        s.bodies.push(sBody); this.label(sMesh,`${sub.name}`,'mission-label',true);
-      });
-    });
-  },
-
-  loop(){
-    requestAnimationFrame(()=>this.loop());
-    const s=this.s;
-    s.bodies.forEach(b=>{
-      if(b.data.id==='sun') return;
-      if(!b.isSub){ b.angle-=b.data.speed*.001; const r=s.fib[b.data.fibIdx]*s.fibScale; b.mesh.position.x=r*Math.cos(b.angle); b.mesh.position.z=r*Math.sin(b.angle); b.mesh.rotation.y+=.005; }
-      else{ const p=b.parent.mesh; b.angle+=b.data.orbitSpeed*.01; b.mesh.position.x=p.position.x+b.data.orbitDist*Math.cos(b.angle); b.mesh.position.z=p.position.z+b.data.orbitDist*Math.sin(b.angle); b.mesh.position.y=p.position.y+Math.sin(b.angle)*(b.data.orbitDist*.2); b.mesh.rotation.x+=.01; }
-    });
-    if(s.focused && !s.zooming){ const t=new THREE.Vector3(); s.focused.mesh.getWorldPosition(t); s.controls.target.lerp(t,.1); }
-    this.updateLabels(); s.controls.update(); s.renderer.render(s.scene,s.camera);
-  },
-
-  label(mesh,name,cls,isMission){
-    const div=document.createElement('div'); div.className=`html-label ${cls}`; div.textContent=name;
-    document.getElementById('labels-container').appendChild(div);
-    this.s.labels.push({mesh,el:div,isMission:!!isMission});
-  },
-
-  updateLabels(){
-    const s=this.s, v=new THREE.Vector3();
-    s.labels.forEach(l=>{
-      l.mesh.getWorldPosition(v); const dist=s.camera.position.distanceTo(v); v.project(s.camera);
-      if(v.z>1||v.z<-1){ l.el.style.opacity=0; return; }
-      let op=1;
-      if(s.focused){
-        const inSys=l.mesh===s.focused.mesh || (s.focused.isSub && l.mesh===s.focused.parent.mesh) || (!s.focused.isSub && l.isMission && l.mesh.userData.body && l.mesh.userData.body.parent===s.focused);
-        if(!inSys && !l.isMission) op=.12;
-        if(l.isMission && dist>220) op=0;
-      } else { if(dist>5200) op=0; if(l.isMission) op=0; }
-      l.el.style.opacity=op;
-      const x=(v.x*.5+.5)*innerWidth, y=(v.y*-.5+.5)*innerHeight;
-      l.el.style.transform=`translate(-50%,-50%) translate(${x}px, ${y-(l.isMission?14:34)}px)`;
-    });
-  },
-
-  onClick(e){
-    const s=this.s; s.mouse.x=(e.clientX/innerWidth)*2-1; s.mouse.y=-(e.clientY/innerHeight)*2+1;
-    s.raycaster.setFromCamera(s.mouse,s.camera);
-    const hits=s.raycaster.intersectObjects(s.bodies.map(b=>b.hit||b.mesh));
-    if(hits.length){ const body=hits[0].object.userData.body; if(body) this.selectBody(body); }
-  },
-
-  fly(camP,lookP,dur=2.4,ease='power3.inOut',cb){
-    gsap.to(this.s.camera.position,{...camP,duration:dur,ease});
-    gsap.to(this.s.controls.target,{...lookP,duration:dur,ease,onComplete:cb});
-  },
-
-  selectBody(body){
-    this.s.focused=body; this.s.zooming=true;
-    const t=new THREE.Vector3(); body.mesh.getWorldPosition(t);
-    const o=body.data.camOffset || (body.isSub ? {x:body.data.size*6+2,y:body.data.size*3+1,z:body.data.size*6+2} : {x:body.data.size*6+15,y:body.data.size*3+7.5,z:body.data.size*6+15});
-    this.fly({x:t.x+o.x,y:t.y+o.y,z:t.z+o.z},{x:t.x,y:t.y,z:t.z},2.4,'power3.inOut',()=>this.s.zooming=false);
-    this.s.stack = body.data.id==='sun' ? ['root'] : body.isSub ? ['root',body.parent.data.id] : ['root',body.data.id];
-    this.renderPanel(body);
-  },
-
-  resetCamera(initial){
-    const s=this.s; s.focused=null; s.zooming=true; s.stack=['root']; this.renderPanel();
-    const d=s.fib[9]*s.fibScale, dur=initial?.1:2.6;
-    this.fly({x:0,y:d*.6,z:d*.85},{x:0,y:0,z:0},dur,'power3.inOut',()=>s.zooming=false);
-  },
-
-  togglePanel(){
-    this.s.panelOpen=!this.s.panelOpen;
-    document.getElementById('panel').classList.toggle('collapsed',!this.s.panelOpen);
-    document.getElementById('panel-toggle').textContent=this.s.panelOpen?'\u203A':'\u2039';
-  },
-
-  findPlanet(id){ return this.COSMIC_DATA.find(p=>p.id===id); },
-
-  renderPanel(active){
-    const stack=this.s.stack, list=document.getElementById('panel-list');
-    if(stack.length===1){
-      list.innerHTML = this.COSMIC_DATA.map(p=>`<div class="row" onclick="A.selectById('${p.id}')"><div><div class="rname">${p.name}</div><div class="rtype">Planet</div></div><div>${p.subNodes?'\u203A':''}</div></div>`).join('');
-    } else {
-      const planet=this.findPlanet(stack[1]);
-      list.innerHTML = (planet.subNodes&&planet.subNodes.length) ? planet.subNodes.map(sub=>`<div class="row ${active&&active.data.id===sub.id?'active':''}" onclick="A.selectById('${sub.id}')"><div><div class="rname">${sub.name}</div><div class="rtype">${sub.type}</div></div></div>`).join('')
-        : `<div class="row" style="cursor:default;"><div class="rtype" style="opacity:.6;">No tracked moons or missions yet</div></div>`;
+const Ext = {
+    list: {
+        voice:   { name: 'Voice Triggers', desc: 'Speak a category name to jump there; node titles read aloud.', on: false },
+        wiki:    { name: 'Wiki Keyword Search', desc: 'Search kids.miraheze.org from the Search panel.', on: true },
+        upi:     { name: 'UPI Support Tile', desc: 'Show a UPI QR code in Settings once a payee ID is set.', on: false },
+        neo4j:   { name: 'Neo4j Sync', desc: 'Off by default — needs a backend, not a hardcoded credential in this public file.', on: false },
+        ai:      { name: 'AI Synthesis', desc: 'Off by default — same reasoning as Neo4j: no key belongs in this file.', on: false },
+        haptics: { name: 'Haptic Feedback', desc: 'A short vibration on tap, on devices that support it (mobile).', on: true }
+    },
+    toggle: function(id) { this.list[id].on = !this.list[id].on; this.renderList(); if (id === 'voice' && !this.list.voice.on) Voice.stop(); },
+    renderList: function() {
+        const el = document.getElementById('ext-list');
+        el.innerHTML = Object.entries(this.list).map(([id, e]) => `
+            <div class="ext-row">
+                <div><div class="nm">${e.name}</div><div class="ds">${e.desc}</div></div>
+                <label class="pswitch"><input type="checkbox" ${e.on ? 'checked' : ''} onchange="Ext.toggle('${id}')"><span class="pslider"></span></label>
+            </div>`).join('');
     }
-  },
-  selectById(id){ const body=this.s.bodies.find(b=>b.data.id===id); if(body) this.selectBody(body); },
-
-  buildMissionBar(){
-    document.getElementById('mission-bar').innerHTML = this.MISSIONS.map(m=>
-      `<div class="mcard" onclick="A.playMission('${m.id}')"><div class="num mono">${m.num}</div><div class="mtitle disp">${m.title}</div><div class="msub">${m.sub}</div></div>`).join('');
-  },
-
-  async playMission(id){
-    const m=this.MISSIONS.find(x=>x.id===id); if(!m) return;
-    const baseMesh=this.s.bodies.find(b=>b.data.id===m.target).mesh, base=new THREE.Vector3(); baseMesh.getWorldPosition(base);
-    const tl=gsap.timeline({onComplete:()=>{}}); 
-
-    m.stages.forEach(st=>{
-      const camP=base.clone().add(new THREE.Vector3(st.cam.x,st.cam.y,st.cam.z));
-      const lookP=base.clone().add(new THREE.Vector3(st.look.x,st.look.y,st.look.z));
-      tl.to(this.s.camera.position,{...camP,duration:st.dur,ease:'power2.inOut'});
-      tl.to(this.s.controls.target,{...lookP,duration:st.dur,ease:'power2.inOut'},'<');
-    });
-
-    if(m.finalId){
-      const finalMesh=this.s.bodies.find(b=>b.data.id===m.finalId).mesh;
-      tl.call(()=>{
-        const fp=finalMesh.position.clone(), camP=fp.clone().add(new THREE.Vector3(m.finalOff.x,m.finalOff.y,m.finalOff.z));
-        gsap.to(this.s.camera.position,{...camP,duration:2.4,ease:'power2.inOut'});
-        gsap.to(this.s.controls.target,{...fp,duration:2.4,ease:'power2.inOut'});
-      });
-    }
-  }
 };
 
-// ==========================================
-// 4. INITIALIZATION
-// ==========================================
-window.onload = () => {
-    A.init();
-    DP.init();
-};
+// ============================================================
+// 9. WHAT'S DELIBERATELY NOT HERE
+//    Multiplayer needs a realtime backend (a WebSocket relay or
+//    a service like Supabase Realtime/PartyKit) to sync state
+//    between devices — that's not something a static file can
+//    do on its own, so it isn't faked here. Same logic for any
+//    "auto-search every event site" claim: there's no single
+//    free API that covers all of them, hence the deep-link list
+//    above instead of a pretend unified search.
+// ============================================================
+
+document.addEventListener('DOMContentLoaded', () => { Pentagon.init(); });
+
+// Ignite — start expanded so the Fibonacci galaxy is the first thing visible,
+// then open the dice hub straight away so the user has a clear starting point.
+NEXT('cosmos');
+autoSpin();
+resetIdle();
+setTimeout(() => {
+    hub.className = 'expanded';
+    guide.innerHTML = `🌌 Exploring ${SOURCES[currentLayer].name} Dimension`;
+    dots.forEach(el => { el.setAttribute("cx", el.tx); el.setAttribute("cy", el.ty); });
+    nodes.forEach(el => { el.style.transform = `translate(${el.tx}px, ${el.ty}px) scale(1)`; });
+    setTimeout(openDiceHub, 1200);
+}, 1100);
 </script>
 </body>
 </html>
