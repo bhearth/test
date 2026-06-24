@@ -2,664 +2,385 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
-<title>Khel.o · Living Universe v6</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Khel.o · Infinite Knowledge OS</title>
+<script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
 <style>
-/* ── Reset ── */
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{background:#010204;color:#e2e8f0;font-family:'Space Grotesk',system-ui,sans-serif;overflow:hidden;height:100dvh;width:100dvw}
 
-body{
-  background:#010204;
-  color:#e2e8f0;
-  font-family:'Space Grotesk',system-ui,sans-serif;
-  overflow:hidden;
-  touch-action:none;
-  user-select:none;
-  height:100dvh;width:100dvw;
-}
+/* ── HUD & TOOLBAR ── */
+#hud{position:fixed;top:0;left:0;right:0;display:flex;justify-content:space-between;align-items:flex-start;padding:clamp(12px,3vw,20px);pointer-events:none;z-index:50;background:linear-gradient(180deg,rgba(1,2,4,0.92) 60%,transparent)}
+.telemetry{font-size:clamp(10px,2.5vw,13px);letter-spacing:3px;text-transform:uppercase;color:#38bdf8;text-shadow:0 0 10px rgba(56,189,248,0.6);font-weight:500}
+.coords{font-size:clamp(9px,2vw,11px);color:#94a3b8;text-align:right;letter-spacing:2px}
+.hint{font-size:clamp(8px,1.8vw,10px);color:#475569;letter-spacing:1px}
+#toolbar{position:fixed;bottom:0;left:0;right:0;display:flex;justify-content:space-around;align-items:center;padding:clamp(8px,2.5vw,14px) 8px clamp(14px,4vw,26px);background:linear-gradient(0deg,rgba(1,2,4,0.97) 75%,transparent);z-index:50;gap:6px;pointer-events:auto;touch-action:auto}
+.tb{display:flex;flex-direction:column;align-items:center;gap:3px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:10px 14px;cursor:pointer;flex:1;max-width:90px;transition:.2s}
+.tb:active{background:rgba(255,255,255,0.12);transform:scale(0.93)}
+.tb .em{font-size:clamp(22px,6vw,30px);line-height:1}
+.tb .lb{font-size:clamp(8px,2vw,10px);color:#64748b;letter-spacing:.5px;text-transform:uppercase;font-weight:700}
 
-/* ── HUD telemetry ── */
-#hud{
-  position:fixed;top:0;left:0;right:0;
-  display:flex;justify-content:space-between;align-items:flex-start;
-  padding:clamp(12px,3vw,20px);
-  pointer-events:none;z-index:50;
-  background:linear-gradient(180deg,rgba(1,2,4,0.92) 60%,transparent);
-}
-.telemetry{
-  font-size:clamp(10px,2.5vw,13px);letter-spacing:3px;
-  text-transform:uppercase;color:#38bdf8;
-  text-shadow:0 0 10px rgba(56,189,248,0.6);font-weight:500;
-  line-height:1.6;
-}
-.coords{
-  font-size:clamp(9px,2vw,11px);color:#94a3b8;
-  text-align:right;letter-spacing:2px;line-height:1.7;
-}
-.hint{font-size:clamp(8px,1.8vw,10px);color:#475569;letter-spacing:1px;}
+/* ── SETTINGS MODAL ── */
+#settings-modal{position:fixed;inset:0;background:rgba(1,2,4,.95);backdrop-filter:blur(20px);z-index:300;display:none;align-items:center;justify-content:center;flex-direction:column;gap:20px;padding:20px}
+#settings-modal.active{display:flex}
+.modal-box{background:rgba(15,23,42,0.8);border:1px solid rgba(56,189,248,0.2);border-radius:24px;padding:30px;width:90%;max-width:400px;text-align:center}
+.modal-box h2{color:#38bdf8;font-size:20px;margin-bottom:10px;letter-spacing:2px}
+.modal-box p{color:#64748b;font-size:12px;margin-bottom:20px}
+.modal-box select, .modal-box input{width:100%;padding:12px;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.1);border-radius:12px;color:#fff;margin-bottom:15px;font-family:monospace;outline:none}
+.modal-box button{width:100%;padding:14px;background:linear-gradient(135deg,#38bdf8,#818cf8);border:none;border-radius:12px;color:#fff;font-weight:700;cursor:pointer;font-size:14px;letter-spacing:1px}
 
-/* ── Bottom toolbar — always visible, pointer-events on ── */
-#toolbar{
-  position:fixed;bottom:0;left:0;right:0;
-  display:flex;justify-content:space-around;align-items:center;
-  padding:clamp(8px,2.5vw,14px) 8px clamp(14px,4vw,26px);
-  background:linear-gradient(0deg,rgba(1,2,4,0.97) 75%,transparent);
-  z-index:50;gap:6px;pointer-events:auto;
-}
-.tb{
-  display:flex;flex-direction:column;align-items:center;gap:3px;
-  background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);
-  border-radius:16px;padding:10px 14px;cursor:pointer;flex:1;max-width:90px;
-  transition:background .2s,transform .15s;
-}
-.tb:active{background:rgba(255,255,255,0.12);transform:scale(0.93);}
-.tb .em{font-size:clamp(22px,6vw,30px);line-height:1;}
-.tb .lb{font-size:clamp(8px,2vw,10px);color:#64748b;letter-spacing:.5px;
-        text-transform:uppercase;font-weight:700;}
-
-/* ── Viewport ── */
-#viewport{position:absolute;top:50dvh;left:50dvw;}
-#hub{position:absolute;top:0;left:0;transform-style:preserve-3d;will-change:transform;}
-
-/* ── SVG constellation lines ── */
-svg{
-  position:absolute;
-  top:-10000px;left:-10000px;
-  width:20000px;height:20000px;
-  pointer-events:none;
-  transform-style:preserve-3d;
-}
-.stellar-path{
-  fill:none;stroke-width:1.5;stroke-linecap:round;
-  filter:drop-shadow(0 0 4px currentColor);
-  stroke-dasharray:2000;stroke-dashoffset:2000;
-  animation:spark 1.4s cubic-bezier(.25,1,.5,1) forwards;
-}
+/* ── 3D VIEWPORT (Hammer.js Target) ── */
+#viewport{position:absolute;top:0;left:0;width:100%;height:100%;touch-action:none;overflow:hidden}
+#hub{position:absolute;top:50%;left:50%;transform-style:preserve-3d;will-change:transform}
+svg{position:absolute;top:-10000px;left:-10000px;width:20000px;height:20000px;pointer-events:none;transform-style:preserve-3d}
+.stellar-path{fill:none;stroke-width:1.5;stroke-linecap:round;filter:drop-shadow(0 0 4px currentColor);stroke-dasharray:2000;stroke-dashoffset:2000;animation:spark 1.4s cubic-bezier(.25,1,.5,1) forwards}
 @keyframes spark{to{stroke-dashoffset:0}}
 
-/* ── Fibonacci dot ── */
-.dot{
-  position:absolute;border-radius:50%;cursor:pointer;
-  transform:translate3d(calc(-50% + var(--x)),calc(-50% + var(--y)),var(--z));
-  transition:transform .35s cubic-bezier(.34,1.56,.64,1),
-             box-shadow .3s,background .3s;
-  will-change:transform;
-  /* minimum 44px touch target even for tiny dots */
-  min-width:44px;min-height:44px;
-  display:flex;align-items:center;justify-content:center;
-}
-.dot .hit{
-  /* the visible circle inside the big tap zone */
-  border-radius:50%;background:var(--col);
-  width:var(--sz);height:var(--sz);
-  box-shadow:0 0 6px var(--col);
-  transition:transform .3s,box-shadow .3s;
-}
-.dot:hover .hit,.dot:active .hit{
-  transform:scale(2.2);
-  box-shadow:0 0 22px var(--col),0 0 40px var(--col);
-  z-index:100;
-}
-/* Golden seed */
-.seed-dot{
-  position:absolute;width:80px;height:80px;
-  transform:translate(-50%,-50%);
-  display:flex;align-items:center;justify-content:center;
-  cursor:pointer;border-radius:50%;
-}
-.seed-dot::after{
-  content:'';position:absolute;
-  width:clamp(16px,4vw,22px);height:clamp(16px,4vw,22px);
-  background:#d4af37;border-radius:50%;
-  box-shadow:0 0 40px 16px rgba(212,175,55,.7);
-  animation:breath 3s infinite ease-in-out;
-  transition:.3s;
-}
-.seed-dot:hover::after,.seed-dot:active::after{
-  transform:scale(1.8);background:#fff;
-  box-shadow:0 0 70px 30px rgba(212,175,55,.9);
-}
+/* ── NODES (Levels 1-5) ── */
+.seed-dot{position:absolute;width:80px;height:80px;transform:translate(-50%,-50%);display:flex;align-items:center;justify-content:center;cursor:pointer;border-radius:50%}
+.seed-dot::after{content:'';position:absolute;width:20px;height:20px;background:#d4af37;border-radius:50%;box-shadow:0 0 40px 16px rgba(212,175,55,.7);animation:breath 3s infinite ease-in-out}
 @keyframes breath{0%,100%{transform:scale(1);opacity:.8}50%{transform:scale(1.5);opacity:1}}
 
-/* ── JSON domain nodes (spawn on dot click) ── */
-.jnode{
-  position:absolute;display:flex;flex-direction:column;
-  align-items:center;justify-content:center;
-  border-radius:50%;cursor:pointer;text-align:center;
-  background:rgba(10,15,25,0.65);border:1.5px solid;
-  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
-  transform:translate3d(calc(-50% + var(--x)),calc(-50% + var(--y)),var(--z)) scale(0);
-  animation:supernova .9s cubic-bezier(.34,1.56,.64,1) forwards;
-  will-change:transform;
-}
-.jnode:hover,.jnode:active{
-  background:currentColor!important;color:#000!important;
-  box-shadow:0 0 30px currentColor,inset 0 0 15px #fff;z-index:500;
-  transform:translate3d(calc(-50% + var(--x)),calc(-50% + var(--y)),calc(var(--z) + 50px)) scale(1.35)!important;
-}
-.jnode .ji{
-  font-size:clamp(18px,5vw,28px);
-  filter:drop-shadow(0 2px 5px rgba(0,0,0,.8));
-  transition:transform .3s;line-height:1;
-}
-.jnode:hover .ji{transform:scale(1.25);}
-.jnode .jl{
-  font-size:clamp(7px,1.8vw,10px);font-weight:700;
-  text-transform:uppercase;letter-spacing:1.5px;
-  margin-top:5px;pointer-events:none;
-}
+.jnode{position:absolute;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:50%;cursor:pointer;text-align:center;background:rgba(10,15,25,0.8);border:1.5px solid;backdrop-filter:blur(10px);transform:translate3d(calc(-50% + var(--x)),calc(-50% + var(--y)),var(--z)) scale(0);animation:supernova .9s cubic-bezier(.34,1.56,.64,1) forwards;will-change:transform}
+.jnode:active{background:currentColor!important;color:#000!important;box-shadow:0 0 30px currentColor;z-index:500}
+.jnode .ji{font-size:clamp(18px,5vw,28px);filter:drop-shadow(0 2px 5px rgba(0,0,0,.8))}
+.jnode .jl{font-size:clamp(7px,1.8vw,10px);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-top:5px;pointer-events:none}
 @keyframes supernova{to{transform:translate3d(calc(-50% + var(--x)),calc(-50% + var(--y)),var(--z)) scale(1)}}
 
-/* ── Search overlay ── */
-#search-overlay{
-  position:fixed;inset:0;background:rgba(1,2,4,.97);
-  backdrop-filter:blur(16px);z-index:200;
-  display:none;flex-direction:column;
-  padding:clamp(16px,5vw,32px);
-  animation:fadeUp .25s ease;
-}
-#search-overlay.active{display:flex;}
-@keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
-#search-wrap{display:flex;gap:10px;align-items:center;margin-bottom:16px;}
-#search-input{
-  flex:1;background:rgba(255,255,255,0.05);
-  border:2px solid rgba(56,189,248,.35);border-radius:50px;
-  padding:clamp(12px,3.5vw,16px) 20px;color:#fff;
-  font-size:clamp(16px,4.5vw,20px);outline:none;font-family:inherit;font-weight:600;
-}
-#search-input::placeholder{color:#334155;}
-#search-close{
-  width:clamp(44px,12vw,54px);height:clamp(44px,12vw,54px);
-  border-radius:50%;background:rgba(255,255,255,0.07);
-  border:none;color:#94a3b8;font-size:20px;cursor:pointer;flex-shrink:0;
-}
-#search-results{overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:10px;}
-.s-card{
-  display:flex;align-items:center;gap:14px;
-  background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);
-  border-radius:18px;padding:clamp(12px,3.5vw,18px);cursor:pointer;
-  animation:fadeUp .3s both;transition:background .2s;
-}
-.s-card:active{background:rgba(255,255,255,0.09);}
-.s-em{font-size:clamp(28px,8vw,40px);flex-shrink:0;line-height:1;}
-.s-body h3{margin:0 0 3px;font-size:clamp(14px,4vw,18px);color:#fff;font-weight:700;}
-.s-body p{margin:0;font-size:clamp(10px,2.8vw,13px);color:#475569;line-height:1.4;}
-.s-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px;}
-.s-tag{background:rgba(56,189,248,.12);color:#38bdf8;
-       padding:2px 9px;border-radius:20px;
-       font-size:clamp(8px,2.2vw,11px);font-weight:700;}
+/* ── RICH MEDIA CARDS (Level 6 - AI Generated) ── */
+.media-card{position:absolute;width:180px;height:120px;border-radius:16px;cursor:pointer;overflow:hidden;transform:translate3d(calc(-50% + var(--x)),calc(-50% + var(--y)),var(--z)) scale(0);animation:cardPop 1s cubic-bezier(.34,1.56,.64,1) forwards;box-shadow:0 10px 30px rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.1);background:#0f172a;display:flex;flex-direction:column;justify-content:flex-end}
+@keyframes cardPop{to{transform:translate3d(calc(-50% + var(--x)),calc(-50% + var(--y)),var(--z)) scale(1)}}
+.media-card:active{transform:translate3d(calc(-50% + var(--x)),calc(-50% + var(--y)),calc(var(--z) + 40px)) scale(1.1)!important}
+.card-bg{position:absolute;inset:0;background-size:cover;background-position:center;opacity:0.4;transition:0.3s}
+.media-card:active .card-bg{opacity:0.7}
+.card-content{position:relative;z-index:2;padding:12px;background:linear-gradient(transparent,rgba(0,0,0,0.9))}
+.card-type{font-size:9px;font-weight:800;letter-spacing:2px;text-transform:uppercase;margin-bottom:4px}
+.card-title{font-size:12px;font-weight:600;color:#fff;line-height:1.3}
+.type-yt .card-type{color:#ff0000}
+.type-book .card-type{color:#fbbf24}
+.type-web .card-type{color:#38bdf8}
 
-/* ── Detail sheet ── */
-#detail{
-  position:fixed;bottom:-100%;left:0;right:0;
-  background:rgba(5,8,15,.98);border-top:1.5px solid rgba(212,175,55,.3);
-  border-radius:28px 28px 0 0;z-index:150;
-  padding:clamp(18px,5vw,28px);
-  transition:bottom .45s cubic-bezier(.34,1.56,.64,1);
-  max-height:55vh;overflow-y:auto;
-}
-#detail.open{bottom:0;}
-#detail .handle{width:42px;height:5px;background:rgba(255,255,255,.18);
-               border-radius:4px;margin:0 auto 16px;}
-#d-icon{font-size:clamp(46px,13vw,68px);text-align:center;margin-bottom:8px;}
-#d-title{font-size:clamp(17px,5vw,24px);color:#fff;font-weight:800;text-align:center;margin:0 0 6px;}
-#d-desc{font-size:clamp(12px,3.3vw,15px);color:#64748b;text-align:center;line-height:1.6;margin:0 0 16px;}
-#d-links{display:flex;flex-direction:column;gap:9px;}
-.d-link{
-  display:flex;align-items:center;gap:10px;
-  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);
-  border-radius:14px;padding:13px 16px;color:#a7f3d0;
-  text-decoration:none;font-size:clamp(12px,3.3vw,14px);font-weight:600;
-  transition:background .2s;
-}
-.d-link:active{background:rgba(255,255,255,.11);}
-.d-close{width:100%;margin-top:12px;padding:13px;
-  background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);
-  color:#f87171;border-radius:14px;font-size:clamp(13px,4vw,15px);
-  font-weight:700;cursor:pointer;}
+/* ── VIEWER MODE (Modal) ── */
+#viewer{position:fixed;inset:0;background:rgba(1,2,4,.98);backdrop-filter:blur(20px);z-index:400;display:none;flex-direction:column;align-items:center;justify-content:center;padding:20px}
+#viewer.active{display:flex}
+.viewer-card{background:rgba(15,23,42,0.9);border:1px solid rgba(56,189,248,0.3);border-radius:24px;padding:30px;width:90%;max-width:400px;text-align:center}
+.viewer-icon{font-size:60px;margin-bottom:15px}
+.viewer-title{font-size:22px;font-weight:700;color:#fff;margin-bottom:10px}
+.viewer-desc{font-size:14px;color:#94a3b8;line-height:1.6;margin-bottom:25px}
+.viewer-btn{display:block;width:100%;padding:16px;background:linear-gradient(135deg,#38bdf8,#818cf8);border:none;border-radius:16px;color:#fff;font-size:16px;font-weight:700;cursor:pointer;text-decoration:none;margin-bottom:10px}
+.viewer-close{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#94a3b8}
+
+/* ── LOADING WARP ── */
+#loader{position:fixed;inset:0;background:rgba(1,2,4,.9);z-index:500;display:none;align-items:center;justify-content:center;flex-direction:column;gap:15px}
+#loader.active{display:flex}
+.loader-ring{width:50px;height:50px;border:2px solid transparent;border-top-color:#38bdf8;border-radius:50%;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loader-text{font-size:11px;letter-spacing:3px;color:#38bdf8;text-transform:uppercase}
 </style>
 </head>
 <body>
 
-<!-- ── HUD ── -->
+<!-- SETTINGS MODAL -->
+<div id="settings-modal">
+  <div class="modal-box">
+    <h2>⚙️ AI ENGINE</h2>
+    <p>Connect to the Knowledge Universe. (Zero tokens used for first 5 clicks)</p>
+    <select id="sel-provider">
+      <option value="demo">Demo Mode (No API)</option>
+      <option value="openrouter">OpenRouter (Qwen/Claude/Llama)</option>
+      <option value="groq">Groq (Fast & Free)</option>
+    </select>
+    <input type="password" id="inp-key" placeholder="Paste API Key (Optional for Demo)">
+    <button onclick="saveSettings()">ACTIVATE ENGINE</button>
+  </div>
+</div>
+
+<!-- HUD -->
 <div id="hud">
   <div class="telemetry">
     <div id="status">✨ Touch the Golden Seed</div>
-    <div id="browser-tag" style="font-size:9px;color:#334155;letter-spacing:2px;margin-top:3px;"></div>
+    <div id="ai-tag" style="font-size:9px;color:#334155;margin-top:3px">ENGINE: DEMO</div>
   </div>
   <div class="coords">
     <div id="coord-display">Z: 1.000</div>
-    <div class="hint">DOUBLE-TAP TO RESET</div>
+    <div class="hint" onclick="document.getElementById('settings-modal').classList.add('active')" style="cursor:pointer;color:#38bdf8">⚙️ SETTINGS</div>
   </div>
 </div>
 
-<!-- ── 3D viewport ── -->
+<!-- 3D VIEWPORT -->
 <div id="viewport"><div id="hub"><svg id="lines"></svg></div></div>
 
-<!-- ── Bottom toolbar ── -->
+<!-- TOOLBAR -->
 <div id="toolbar">
-  <div class="tb" onclick="openSearch()"><span class="em">🔍</span><span class="lb">Search</span></div>
   <div class="tb" onclick="resetUniverse()"><span class="em">🌱</span><span class="lb">Seed</span></div>
   <div class="tb" onclick="rollSurprise()"><span class="em">🎲</span><span class="lb">Dice</span></div>
-  <div class="tb" onclick="toggleVoice()"><span class="em" id="v-icon">👂</span><span class="lb">Voice</span></div>
+  <div class="tb" onclick="document.getElementById('settings-modal').classList.add('active')"><span class="em">⚙️</span><span class="lb">AI</span></div>
 </div>
 
-<!-- ── Search ── -->
-<div id="search-overlay">
-  <div id="search-wrap">
-    <input id="search-input" type="search" placeholder="🌱 water • music • why?" autocomplete="off"
-           oninput="runSearch(this.value)">
-    <button id="search-close" onclick="closeSearch()">✕</button>
+<!-- VIEWER MODE -->
+<div id="viewer">
+  <div class="viewer-card">
+    <div class="viewer-icon" id="v-icon">📺</div>
+    <div class="viewer-title" id="v-title">Resource Title</div>
+    <div class="viewer-desc" id="v-desc">Description goes here.</div>
+    <a href="#" target="_blank" class="viewer-btn" id="v-link">OPEN RESOURCE</a>
+    <button class="viewer-btn viewer-close" onclick="closeViewer()">BACK TO UNIVERSE</button>
   </div>
-  <div id="search-results"></div>
 </div>
 
-<!-- ── Detail sheet ── -->
-<div id="detail">
-  <div class="handle" onclick="closeDetail()"></div>
-  <div id="d-icon"></div>
-  <div id="d-title"></div>
-  <div id="d-desc"></div>
-  <div id="d-links"></div>
-  <button class="d-close" onclick="closeDetail()">✕ Close</button>
-</div>
+<!-- LOADER -->
+<div id="loader"><div class="loader-ring"></div><div class="loader-text">Querying AI Universe...</div></div>
 
 <script>
-// ============================================================
-//  STEP 0 — BROWSER / OS DETECTION
-//  Runs once at boot. Adapts rendering budget so the same file
-//  works on a 2015 Android phone and a desktop Chrome tab.
-// ============================================================
-const ENV = (() => {
-  const ua = navigator.userAgent;
-  const ios     = /iPad|iPhone|iPod/.test(ua);
-  const android = /Android/.test(ua);
-  const safari  = /^((?!chrome|android).)*safari/i.test(ua);
-  const lowPow  = /Android [1-6]\./.test(ua) || navigator.hardwareConcurrency <= 2;
-  const w = window.innerWidth, h = window.innerHeight;
-  const mobile  = Math.min(w,h) < 600;
-  const ratio   = window.devicePixelRatio || 1;
-  // Clamp pixel ratio on low-power devices to avoid overdraw
-  if(lowPow) { try{ document.querySelector('meta[name=viewport]').content += ',maximum-scale=2'; }catch(e){} }
-  document.getElementById('browser-tag').innerText =
-    `${ios?'iOS':android?'Android':'Desktop'} · ${mobile?'Mobile':'Wide'} · DPR ${ratio.toFixed(1)}${lowPow?' · ECO':''}`;
-  return { ios, android, safari, lowPow, mobile, w, h,
-    // How many fibonacci dots to render — fewer on low-power
-    dotCount: lowPow ? 80 : (mobile ? 120 : 200),
-    // How large outer ring radius should be (fraction of smaller screen dimension)
-    ringFrac: mobile ? 0.38 : 0.32,
-    // Base node size for outer category nodes
-    outerSz: mobile ? Math.max(52, Math.min(w*0.13, 72)) : 64,
-    // Auto-rotation speed (disabled on low-power to save battery)
-    autoSpin: !lowPow,
-  };
-})();
+// ═══════════════════════════════════════════════════════
+//  CONFIG & STATE
+// ═══════════════════════════════════════════════════════
+let CFG = JSON.parse(localStorage.getItem('khelo_cfg') || '{"provider":"demo","key":""}');
+const PROVIDERS = {
+  demo: { url: null, model: 'demo' },
+  openrouter: { url: 'https://openrouter.ai/api/v1/chat/completions', model: 'qwen/qwen-2.5-72b-instruct' },
+  groq: { url: 'https://api.groq.com/openai/v1/chat/completions', model: 'llama-3.1-70b-versatile' }
+};
 
-// ============================================================
-//  KNOWLEDGE BASE — 15 symbol-first entries, bilingual tags
-// ============================================================
-const KB = [
-  {icon:"💧",title:"Water",desc:"Clean water is the foundation of every life.",tags:["water","river","jal","rain","nadi","ocean","samudra"],catKey:"Where",links:[{label:"Water.org",url:"https://water.org"},{label:"WHO Water",url:"https://www.who.int/health-topics/drinking-water"}]},
-  {icon:"🌱",title:"Seed & Soil",desc:"Plant one seed. It works while you sleep.",tags:["seed","soil","farm","grow","kisan","mitti","krishi"],catKey:"How",links:[{label:"Navdanya",url:"https://navdanya.org"},{label:"FAO Soils",url:"https://www.fao.org/soils-portal"}]},
-  {icon:"🎵",title:"Music & Sound",desc:"Sound is the first healer.",tags:["music","song","sing","drum","raga","geet","dhvani","sound"],catKey:"Art",links:[{label:"Internet Archive Audio",url:"https://archive.org/details/audio"},{label:"Kids Music Wiki",url:"https://kids.miraheze.org/wiki/Music"}]},
-  {icon:"💃",title:"Dance & Movement",desc:"The body knows what the mind forgets.",tags:["dance","move","yoga","body","nritya","sport","play"],catKey:"Dance",links:[{label:"Open Yoga",url:"https://www.yogajournal.com"},{label:"Dance Wiki",url:"https://kids.miraheze.org/wiki/Dance"}]},
-  {icon:"📚",title:"Learn",desc:"One page a day. One skill forever.",tags:["learn","read","book","school","vidya","gyan","study"],catKey:"What",links:[{label:"Khan Academy",url:"https://khanacademy.org"},{label:"Kids Wiki",url:"https://kids.miraheze.org"}]},
-  {icon:"🌍",title:"Earth",desc:"The planet is the teacher. Observe it.",tags:["earth","ecology","nature","forest","dharti","vayu","environment"],catKey:"Where",links:[{label:"WWF",url:"https://wwf.org"},{label:"Global Forest Watch",url:"https://globalforestwatch.org"}]},
-  {icon:"🤝",title:"Community",desc:"10 people + one Saturday + one action = change.",tags:["community","together","sahyog","volunteer","ngo","group","help"],catKey:"Why",links:[{label:"Idealist",url:"https://idealist.org"},{label:"Open Collective",url:"https://opencollective.com"}]},
-  {icon:"🍎",title:"Food & Health",desc:"Food is the first medicine.",tags:["food","health","eat","cook","anna","swastha","medicine","nutrition"],catKey:"How",links:[{label:"Open Food Facts",url:"https://world.openfoodfacts.org"},{label:"WHO Nutrition",url:"https://www.who.int/health-topics/nutrition"}]},
-  {icon:"☀️",title:"Energy",desc:"The sun gives more in one hour than we use in a year.",tags:["energy","solar","sun","light","power","urja","electricity"],catKey:"What",links:[{label:"IRENA",url:"https://irena.org"},{label:"Open Energy Monitor",url:"https://openenergymonitor.org"}]},
-  {icon:"🎨",title:"Art & Creation",desc:"Making something is the first act of intelligence.",tags:["art","draw","create","colour","kala","design","chitrakari","paint"],catKey:"Art",links:[{label:"Open Library",url:"https://openlibrary.org"},{label:"Art Wiki",url:"https://kids.miraheze.org/wiki/Art"}]},
-  {icon:"🧠",title:"Mind",desc:"Curiosity is the only tool you always have.",tags:["mind","think","brain","idea","curious","mann","buddhi","question"],catKey:"Why",links:[{label:"Mind Wiki",url:"https://kids.miraheze.org/wiki/Brain"},{label:"Khan Academy",url:"https://khanacademy.org"}]},
-  {icon:"🚀",title:"Space & Stars",desc:"We are made of stardust. Look up.",tags:["space","star","moon","planet","sky","cosmos","akash","tara"],catKey:"Space",links:[{label:"NASA",url:"https://nasa.gov"},{label:"ESA",url:"https://esa.int"}]},
-  {icon:"🌊",title:"Ocean & Rivers",desc:"Rivers connect mountains to the sea.",tags:["water","ocean","river","fish","sea","nadi","samudra","blue"],catKey:"Where",links:[{label:"OBIS",url:"https://obis.org"},{label:"GBIF Marine",url:"https://gbif.org"}]},
-  {icon:"🎭",title:"Story",desc:"A story told once travels a thousand miles.",tags:["story","theatre","drama","culture","katha","natak","perform"],catKey:"Art",links:[{label:"Archive Stories",url:"https://archive.org/details/texts"},{label:"Story Wiki",url:"https://kids.miraheze.org/wiki/Theatre"}]},
-  {icon:"🤲",title:"Contribution",desc:"Only what outlasts your effort counts.",tags:["contribute","give","share","help","seva","daan","action","build"],catKey:"Why",links:[{label:"Kids Miraheze",url:"https://kids.miraheze.org"},{label:"OpenStreetMap",url:"https://openstreetmap.org"}]},
-];
-
-function searchKB(q){
-  if(!q) return KB;
-  const words = q.toLowerCase().split(/\s+/).filter(Boolean);
-  return KB.map(item=>{
-    let score=0;
-    const hay=(item.title+' '+item.tags.join(' ')+' '+item.desc).toLowerCase();
-    words.forEach(w=>{ if(hay.includes(w)) score+=(item.title.toLowerCase().includes(w)?3:1); });
-    return {...item,score};
-  }).filter(i=>i.score>0).sort((a,b)=>b.score-a.score);
+function saveSettings() {
+  CFG.provider = document.getElementById('sel-provider').value;
+  CFG.key = document.getElementById('inp-key').value;
+  localStorage.setItem('khelo_cfg', JSON.stringify(CFG));
+  document.getElementById('settings-modal').classList.remove('active');
+  document.getElementById('ai-tag').innerText = `ENGINE: ${CFG.provider.toUpperCase()}`;
 }
 
-// ============================================================
-//  JSON DOMAIN DATA (drives the constellation expansion)
-// ============================================================
-const DOMAINS = [
-  {name:"Individual",icon:"👤",color:"#38bdf8",layers:["🌱 Potential","🍚 Energy","🔥 Discipline","👑 Ego","🌸 Realization"]},
-  {name:"Community",icon:"👪",color:"#c084fc",layers:["🌱 Belonging","🍚 Capital","🔥 Culture","👑 Power","🌸 Harmony"]},
-  {name:"Ecology",   icon:"🌱",color:"#10b981",layers:["🌱 Resource","🍚 Material","🔥 Production","👑 Exploitation","🌸 Circular"]},
-  {name:"Earth Eng", icon:"⚙️",color:"#94a3b8",layers:["🌱 Shelter","🍚 Structure","🔥 Ethics","👑 Concrete","🌸 Living"]},
-  {name:"Discovery", icon:"🔭",color:"#818cf8",layers:["🌱 Inquiry","🍚 Data","🔥 Method","👑 Truth","🌸 Cosmic"]},
-  {name:"Innovation",icon:"💡",color:"#f59e0b",layers:["🌱 Spark","🍚 Craft","🔥 Iteration","👑 Ownership","🌸 Beauty"]},
-  {name:"Sahyog",    icon:"🤝",color:"#f43f5e",layers:["🌱 Purpose","🍚 Trust","🔥 Clarity","👑 Credit","🌸 Emergent"]},
-  {name:"Mukti",     icon:"🕊️",color:"#a7f3d0",layers:["🌱 Longing","🍚 Letting go","🔥 Discernment","👑 Illusion","🌸 Union"]},
-];
+// ═══════════════════════════════════════════════════════
+//  ZERO-TOKEN LOCAL TREE (Clicks 1 to 5)
+// ═══════════════════════════════════════════════════════
+const LOCAL_TREE = {
+  "Root": ["Self 👤", "World 🌍", "Action 💡"],
+  "Self 👤": ["Mind 🧠", "Body 🫀", "Skill 🛠️"],
+  "World 🌍": ["Nature 🌱", "Society 🤝", "Tech 🚀"],
+  "Action 💡": ["Create 🎨", "Connect 🌐", "Give 🤲"]
+};
 
-const CAT_COLORS=["#d4af37","#10b981","#38bdf8","#f59e0b","#c084fc","#ec4899","#f43f5e","#a7f3d0"];
+const DIMENSIONS = ["Origins", "Impact", "Future", "Ethics", "Science", "Art", "Community", "History"];
+function getChildren(name, level, path) {
+  if (level === 0) return LOCAL_TREE["Root"];
+  if (LOCAL_TREE[name]) return LOCAL_TREE[name];
+  
+  // Procedural infinite expansion
+  const avail = DIMENSIONS.filter(d => !path.includes(d));
+  const picked = [];
+  while(picked.length < 3 && avail.length > 0) {
+    picked.push(avail.splice(Math.floor(Math.random() * avail.length), 1)[0]);
+  }
+  return picked.map(d => `${name.split(' ')[0]} ${d}`);
+}
 
-// ============================================================
-//  CAMERA STATE — lerped every frame for silky motion
-// ============================================================
-let cam  = {x:0,y:0,z:1,rx:0,ry:0};
-let tgt  = {x:0,y:0,z:ENV.mobile?0.5:1,rx:0,ry:0};
+// ═══════════════════════════════════════════════════════
+//  AI ENGINE (Triggered ONLY at Level 6)
+// ═══════════════════════════════════════════════════════
+const aiCache = new Map();
+async function fetchAIResources(concept) {
+  if (aiCache.has(concept)) return aiCache.get(concept);
+  if (CFG.provider === 'demo') {
+    // Mock data for Demo Mode
+    const mock = [
+      {t:'yt', n:`${concept} Documentary`, u:'https://youtube.com', d:'A deep dive into the concept.'},
+      {t:'book', n:`The Book of ${concept}`, u:'https://openlibrary.org', d:'Essential reading on the topic.'},
+      {t:'web', n:`${concept} Community`, u:'https://wikipedia.org', d:'Global network of learners.'}
+    ];
+    aiCache.set(concept, mock);
+    return mock;
+  }
 
+  // Token-Optimized Prompt (~50 tokens)
+  const prompt = `Topic:"${concept}". Return 3 real resources (1 YouTube, 1 Book, 1 Web). STRICT JSON array only. No markdown. Format:[{"t":"yt|book|web","n":"Title","u":"https://...","d":"10 words"}]`;
+  
+  try {
+    const res = await fetch(PROVIDERS[CFG.provider].url, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json', 'Authorization':`Bearer ${CFG.key}`},
+      body: JSON.stringify({
+        model: PROVIDERS[CFG.provider].model,
+        messages: [{role:'user', content:prompt}],
+        temperature: 0.7, max_tokens: 200
+      })
+    });
+    const data = await res.json();
+    let text = data.choices[0].message.content.replace(/```json|```/g, '').trim();
+    const parsed = JSON.parse(text);
+    aiCache.set(concept, parsed);
+    return parsed;
+  } catch (e) {
+    console.error(e);
+    return [{t:'web', n:'Error fetching', u:'#', d:'Check API key'}];
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+//  3D ENGINE & HAMMER.JS
+// ═══════════════════════════════════════════════════════
 const hub = document.getElementById('hub');
 const svg = document.getElementById('lines');
-const SVG_O = 10000; // SVG coordinate offset (so (0,0) in scene = (10000,10000) in SVG)
+const SVG_O = 10000;
+let cam = {x:0,y:0,z:1,rx:0,ry:0};
+let tgt = {x:0,y:0,z:1,rx:0,ry:0};
+let nodes = [];
 
-let S_state=0, lastTap=0, drag=false, lx, ly, startX, startY;
-let pinchDist=0;
-let jnodes=[];  // all spawned JSON domain nodes
-let voiceEnabled=false, voiceRecog=null;
+// Hammer.js strictly on viewport
+const mc = new Hammer.Manager(document.getElementById('viewport'));
+mc.add(new Hammer.Pan({ direction: Hammer.DIRECTION_ALL, threshold: 0 }));
+mc.add(new Hammer.Pinch({ enable: true }));
+mc.add(new Hammer.Tap({ event: 'doubletap', taps: 2 }));
+mc.get('pinch').recognizeWith(mc.get('pan'));
 
-// ============================================================
-//  FIBONACCI DOTS (the starfield — clicks fire the expansion)
-// ============================================================
-const dots=[];
-function buildDots(){
-  // Remove old dots
-  dots.forEach(d=>d.remove()); dots.length=0;
-  const N = ENV.dotCount;
-  for(let i=1;i<=N;i++){
-    const a=i*137.508*Math.PI/180;
-    const r=16*Math.sqrt(i);
-    const x=r*Math.cos(a), y=-r*Math.sin(a);
-    const z3d=Math.sin(r/40)*60;
-    const col=CAT_COLORS[i%CAT_COLORS.length];
-    const sz=Math.max(4,Math.min(10,3+i/30));
+let isPanning = false, lastPanX = 0, lastPanY = 0, pinchStart = 1;
 
-    const el=document.createElement('div');
-    el.className='dot';
-    el.style.cssText=`--x:${x}px;--y:${y}px;--z:${z3d}px;--col:${col};--sz:${sz}px;`;
-    el.innerHTML=`<div class="hit"></div>`;
-    el.dataset.dotIdx=i;
-    el.dataset.x=x; el.dataset.y=y; el.dataset.z=z3d; el.dataset.col=col;
-    hub.appendChild(el);
-    dots.push(el);
-  }
+mc.on('panstart', e => { isPanning = true; lastPanX = e.center.x; lastPanY = e.center.y; });
+mc.on('panmove', e => {
+  if (!isPanning) return;
+  const dx = e.center.x - lastPanX, dy = e.center.y - lastPanY;
+  if (e.pointers.length >= 2) { tgt.ry += dx * 0.4; tgt.rx -= dy * 0.4; } // 3D Tilt
+  else { tgt.x += dx / cam.z; tgt.y += dy / cam.z; } // Pan
+  lastPanX = e.center.x; lastPanY = e.center.y;
+});
+mc.on('panend', () => isPanning = false);
+mc.on('pinchstart', () => pinchStart = tgt.z);
+mc.on('pinch', e => { tgt.z = Math.max(0.1, Math.min(5, pinchStart * e.scale)); });
+mc.on('doubletap', () => resetUniverse());
+
+// Mouse wheel for desktop
+document.getElementById('viewport').addEventListener('wheel', e => {
+  tgt.z = Math.max(0.1, Math.min(5, tgt.z - e.deltaY * 0.001));
+}, {passive:true});
+
+function lerp(a,b,t){return a+(b-a)*t}
+function renderLoop() {
+  cam.x=lerp(cam.x,tgt.x,0.08); cam.y=lerp(cam.y,tgt.y,0.08);
+  cam.z=lerp(cam.z,tgt.z,0.08); cam.rx=lerp(cam.rx,tgt.rx,0.08); cam.ry=lerp(cam.ry,tgt.ry,0.08);
+  hub.style.transform = `translate(-50%,-50%) scale(${cam.z}) translate3d(${cam.x}px,${cam.y}px,0) rotateX(${cam.rx}deg) rotateY(${cam.ry}deg)`;
+  document.getElementById('coord-display').innerText = `Z:${cam.z.toFixed(3)}`;
+  requestAnimationFrame(renderLoop);
 }
 
-// ============================================================
-//  CONSTELLATION EXPANSION (click a dot → James Webb expansion)
-// ============================================================
-function spawnJNode(px,py,pz,data,level,index,total){
-  const baseR = level===1 ? (ENV.mobile?900:1200) : (ENV.mobile?200:280);
-  let x,y,z;
+// ═══════════════════════════════════════════════════════
+//  SPAWN LOGIC (Infinite Recursion)
+// ═══════════════════════════════════════════════════════
+function spawnNode(px, py, pz, name, level, index, total, path) {
+  const angle = (index / total) * Math.PI * 2 + (level * 0.5);
+  const radius = level === 0 ? 0 : (level === 1 ? 350 : 200);
+  const x = px + Math.cos(angle) * radius;
+  const y = py + Math.sin(angle) * radius;
+  const z = pz + Math.sin(level + index) * 80;
 
-  if(level===1){
-    // Domain ring — circular
-    const a=(index/total)*Math.PI*2;
-    x=px+baseR*Math.cos(a);
-    y=py+baseR*Math.sin(a);
-    z=pz+Math.sin(a*3)*80;
-  } else {
-    // Children — golden angle fibonacci
-    const a=index*2.39996;
-    const r=baseR*Math.sqrt(index+1)*0.6;
-    x=px+r*Math.cos(a);
-    y=py+r*Math.sin(a);
-    z=pz+(index%2===0?50:-50)+level*120;
-  }
+  // Draw Link
+  const pathEl = document.createElementNS("http://www.w3.org/2000/svg","path");
+  pathEl.setAttribute("d",`M${px+SVG_O} ${py+SVG_O} Q${(px+x)/2+SVG_O} ${(py+y)/2+SVG_O} ${x+SVG_O} ${y+SVG_O}`);
+  pathEl.setAttribute("class","stellar-path");
+  pathEl.style.stroke = `hsl(${level*40 + index*30}, 70%, 60%)`;
+  pathEl.style.strokeOpacity = 0.4;
+  svg.appendChild(pathEl);
 
-  const color=data.color||"#38bdf8";
-  const sz=level===1?(ENV.mobile?60:78):(ENV.mobile?42:52);
-
-  // Draw SVG bezier line to parent
-  const path=document.createElementNS("http://www.w3.org/2000/svg","path");
-  const mx=(px+x)/2-(y-py)*0.15+SVG_O;
-  const my=(py+y)/2+(x-px)*0.15+SVG_O;
-  path.setAttribute("d",`M${px+SVG_O} ${py+SVG_O} Q${mx} ${my} ${x+SVG_O} ${y+SVG_O}`);
-  path.setAttribute("class","stellar-path");
-  path.style.stroke=color;
-  path.style.strokeOpacity=level===1?"0.3":"0.65";
-  path.style.animationDelay=`${index*0.07}s`;
-  svg.appendChild(path);
-
-  const el=document.createElement('div');
-  el.className='jnode';
-  el.style.cssText=`--x:${x}px;--y:${y}px;--z:${z}px;width:${sz}px;height:${sz}px;color:${color};border-color:${color};animation-delay:${index*0.08}s;`;
-  el.innerHTML=`<div class="ji">${data.icon}</div><div class="jl" style="color:${color}">${data.name}</div>`;
-  el.dataset.level=level; el.dataset.expanded="false";
-
-  el.onclick=e=>{
+  const el = document.createElement('div');
+  el.className = 'jnode';
+  const sz = Math.max(50, 90 - level * 10);
+  el.style.cssText = `--x:${x}px;--y:${y}px;--z:${z}px;width:${sz}px;height:${sz}px;color:hsl(${level*40 + index*30}, 70%, 60%);border-color:currentColor;animation-delay:${index*0.1}s`;
+  el.innerHTML = `<div class="ji">${name.split(' ').pop()}</div><div class="jl">${name.split(' ')[0]}</div>`;
+  
+  el.onclick = async (e) => {
     e.stopPropagation();
-    // Camera zoom toward clicked node
-    tgt.x=-x; tgt.y=-y;
-    tgt.z=level===1?0.7:1.3;
-    updateStatus(`🔭 ${data.name}`);
-
-    if(el.dataset.expanded==="true") return;
-    el.dataset.expanded="true";
-
-    if(level===1 && data.layers){
-      // Dim siblings
-      jnodes.forEach(n=>{if(n!==el&&n.dataset.level==="1")n.style.opacity="0.2";});
-      data.layers.forEach((lname,i)=>{
-        const p=lname.split(' ');
-        spawnJNode(x,y,z,{icon:p[0],name:p[1],color},2,i,data.layers.length);
-      });
+    tgt.x = -x; tgt.y = -y; tgt.z = 1.5;
+    
+    if (level >= 5) {
+      // LEVEL 6: TRIGGER AI & SHOW MEDIA CARDS
+      document.getElementById('loader').classList.add('active');
+      document.getElementById('status').innerText = `🔮 AI: Mapping ${name}...`;
+      const resources = await fetchAIResources(name);
+      document.getElementById('loader').classList.remove('active');
+      spawnMediaCards(x, y, z, resources);
+    } else {
+      // LEVEL 1-5: LOCAL EXPANSION
+      const children = getChildren(name, level, path);
+      children.forEach((c, i) => spawnNode(x, y, z, c, level + 1, i, children.length, [...path, name]));
     }
   };
 
   hub.appendChild(el);
-  jnodes.push(el);
+  nodes.push(el);
 }
 
-function expandFromDot(dotEl){
-  // Clear any previous JSON expansion
-  clearExpansion();
+function spawnMediaCards(px, py, pz, resources) {
+  resources.forEach((r, i) => {
+    const angle = (i / resources.length) * Math.PI * 2;
+    const x = px + Math.cos(angle) * 250;
+    const y = py + Math.sin(angle) * 250;
+    const z = pz + 100;
 
-  const ox=parseFloat(dotEl.dataset.x);
-  const oy=parseFloat(dotEl.dataset.y);
-  const oz=parseFloat(dotEl.dataset.z);
-  const col=dotEl.dataset.col;
-
-  updateStatus("🌌 Mapping domain roots…");
-  tgt.x=-ox; tgt.y=-oy; tgt.z=ENV.mobile?0.35:0.55;
-
-  DOMAINS.forEach((d,i)=>spawnJNode(ox,oy,oz,{...d},1,i,DOMAINS.length));
-}
-
-function clearExpansion(){
-  jnodes.forEach(n=>n.remove());
-  jnodes.length=0;
-  svg.innerHTML='';
-}
-
-// ============================================================
-//  UNIVERSE BUILD / RESET
-// ============================================================
-function resetUniverse(){
-  clearExpansion();
-  S_state=0;
-  cam={x:0,y:0,z:ENV.mobile?0.5:1,rx:0,ry:0};
-  tgt={x:0,y:0,z:ENV.mobile?0.5:1,rx:0,ry:0};
-
-  // Remove seed node if present
-  const old=hub.querySelector('.seed-dot');
-  if(old) old.remove();
-
-  if(dots.length===0) buildDots();
-  else dots.forEach(d=>{d.style.opacity='1';d.style.transition='opacity .5s';});
-
-  // Golden seed
-  const seed=document.createElement('div');
-  seed.className='seed-dot';
-  seed.style.cssText='--x:0px;--y:0px;--z:0px;';
-  seed.onclick=e=>{
-    e.stopPropagation();
-    if(jnodes.length===0){
-      updateStatus("🌌 Awakening…");
-      tgt.z=ENV.mobile?0.35:0.5;
-      DOMAINS.forEach((d,i)=>spawnJNode(0,0,0,{...d},1,i,DOMAINS.length));
-    } else clearExpansion();
-  };
-  hub.prepend(seed);
-
-  updateStatus("✨ Touch the Golden Seed or any star");
-}
-
-function updateStatus(msg){ document.getElementById('status').innerText=msg; }
-
-// ============================================================
-//  POINTER / TOUCH EVENTS
-// ============================================================
-window.onpointerdown=e=>{
-  if(e.target.closest('#toolbar,#search-overlay,#detail')) return;
-  const now=Date.now();
-  if(now-lastTap<320){ resetUniverse(); lastTap=0; return; }
-  lastTap=now;
-  drag=true; lx=e.clientX; ly=e.clientY; startX=lx; startY=ly;
-};
-window.onpointermove=e=>{
-  if(!drag)return;
-  const dx=e.clientX-lx, dy=e.clientY-ly;
-  const moved=Math.abs(e.clientX-startX)>6||Math.abs(e.clientY-startY)>6;
-  if(moved){
-    if(e.shiftKey||e.buttons===2){ tgt.ry+=dx*.3; tgt.rx-=dy*.3; }
-    else{ tgt.x+=dx/cam.z; tgt.y+=dy/cam.z; }
-  }
-  lx=e.clientX; ly=e.clientY;
-};
-window.onpointerup=e=>{
-  drag=false;
-  if(e.target.closest('#toolbar,#search-overlay,#detail')) return;
-  const moved=Math.abs(e.clientX-startX)>6||Math.abs(e.clientY-startY)>6;
-  if(!moved){
-    const dot=e.target.closest('.dot');
-    if(dot){ expandFromDot(dot); }
-  }
-};
-window.oncontextmenu=e=>e.preventDefault();
-window.onwheel=e=>{ tgt.z=Math.max(0.08,Math.min(5,tgt.z-e.deltaY*.0015)); };
-window.addEventListener('touchstart',e=>{
-  if(e.touches.length===2){ drag=false; pinchDist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY); }
-},{passive:true});
-window.addEventListener('touchmove',e=>{
-  if(e.touches.length===2){
-    const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
-    tgt.z=Math.max(0.08,Math.min(5,tgt.z+(d-pinchDist)*0.004));
-    pinchDist=d;
-  }
-},{passive:true});
-window.addEventListener('resize',()=>{ if(S_state===0) tgt.z=ENV.mobile?0.5:1; });
-
-// ============================================================
-//  RENDER LOOP — lerp camera every frame
-// ============================================================
-function lerp(a,b,t){return a+(b-a)*t;}
-function renderLoop(){
-  const f=0.065; // smoothing factor — feels like floating in zero gravity
-  cam.x=lerp(cam.x,tgt.x,f); cam.y=lerp(cam.y,tgt.y,f);
-  cam.z=lerp(cam.z,tgt.z,f); cam.rx=lerp(cam.rx,tgt.rx,f); cam.ry=lerp(cam.ry,tgt.ry,f);
-
-  hub.style.transform=`translate(-50%,-50%) scale(${cam.z}) translate3d(${cam.x}px,${cam.y}px,0) rotateX(${cam.rx}deg) rotateY(${cam.ry}deg)`;
-
-  document.getElementById('coord-display').innerText=
-    `Z:${cam.z.toFixed(3)} X:${Math.floor(cam.x)} Y:${Math.floor(cam.y)}`;
-
-  // Auto-drift — disabled on low-power
-  if(ENV.autoSpin && !drag && jnodes.length>0) tgt.ry+=0.018;
-
-  requestAnimationFrame(renderLoop);
-}
-
-// ============================================================
-//  SURPRISE DICE
-// ============================================================
-function rollSurprise(){
-  clearExpansion();
-  const d=DOMAINS[Math.floor(Math.random()*DOMAINS.length)];
-  const randomDot=dots[Math.floor(Math.random()*dots.length)];
-  if(!randomDot) return;
-  expandFromDot(randomDot);
-  updateStatus(`🎲 Exploring ${d.icon} ${d.name}`);
-}
-
-// ============================================================
-//  SEARCH
-// ============================================================
-function openSearch(){
-  document.getElementById('search-overlay').classList.add('active');
-  setTimeout(()=>document.getElementById('search-input').focus(),200);
-  runSearch('');
-}
-function closeSearch(){
-  document.getElementById('search-overlay').classList.remove('active');
-  document.getElementById('search-input').value='';
-}
-function runSearch(q){
-  const results=q.length>0?searchKB(q):KB.slice(0,8);
-  const c=document.getElementById('search-results');
-  if(!results.length){
-    c.innerHTML=`<div style="text-align:center;padding:40px;font-size:clamp(32px,10vw,48px);">🌱<br><span style="font-size:clamp(13px,3.5vw,16px);color:#475569;">No results — try another word</span></div>`;
-    return;
-  }
-  c.innerHTML=results.map((item,i)=>`
-    <div class="s-card" style="animation-delay:${i*45}ms" onclick='openKB(${JSON.stringify(JSON.stringify(item))})'>
-      <div class="s-em">${item.icon}</div>
-      <div class="s-body">
-        <h3>${item.title}</h3>
-        <p>${item.desc}</p>
-        <div class="s-tags">${item.tags.slice(0,4).map(t=>`<span class="s-tag">${t}</span>`).join('')}</div>
+    const el = document.createElement('div');
+    el.className = `media-card type-${r.t}`;
+    el.style.cssText = `--x:${x}px;--y:${y}px;--z:${z}px;animation-delay:${i*0.2}s`;
+    
+    const icon = r.t === 'yt' ? '📺' : r.t === 'book' ? '📚' : '🌐';
+    const typeName = r.t === 'yt' ? 'YOUTUBE' : r.t === 'book' ? 'BOOK' : 'WEB';
+    
+    el.innerHTML = `
+      <div class="card-bg" style="background:hsl(${i*120}, 50%, 20%)"></div>
+      <div class="card-content">
+        <div class="card-type">${icon} ${typeName}</div>
+        <div class="card-title">${r.n}</div>
       </div>
-    </div>`).join('');
+    `;
+    
+    el.onclick = (e) => {
+      e.stopPropagation();
+      openViewer(r, icon);
+    };
+    
+    hub.appendChild(el);
+  });
 }
-function openKB(json){
-  const item=JSON.parse(json);
-  closeSearch();
-  // Find matching domain and zoom there
-  const dom=DOMAINS.find(d=>d.name.toLowerCase().includes(item.catKey.toLowerCase()));
-  if(dom){
-    clearExpansion();
-    const rdot=dots[Math.floor(Math.random()*dots.length)];
-    if(rdot) expandFromDot(rdot);
-  }
-  setTimeout(()=>showDetail(item),600);
-}
-function showDetail(item){
-  document.getElementById('d-icon').innerText=item.icon;
-  document.getElementById('d-title').innerText=item.title;
-  document.getElementById('d-desc').innerText=item.desc;
-  document.getElementById('d-links').innerHTML=item.links.map(l=>`<a class="d-link" href="${l.url}" target="_blank">🔗 ${l.label}</a>`).join('');
-  document.getElementById('detail').classList.add('open');
-}
-function closeDetail(){ document.getElementById('detail').classList.remove('open'); }
 
-// ============================================================
-//  VOICE (the Ear)
-// ============================================================
-function toggleVoice(){
-  const ic=document.getElementById('v-icon');
-  if(voiceEnabled){
-    try{voiceRecog.stop();}catch(e){}
-    voiceEnabled=false; ic.innerText='👂'; return;
-  }
-  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  if(!SR){ updateStatus("⚠️ Voice not available in this browser"); return; }
-  voiceRecog=new SR();
-  voiceRecog.lang='en-IN'; voiceRecog.continuous=true; voiceRecog.interimResults=false;
-  voiceRecog.onresult=e=>{
-    const said=e.results[e.results.length-1][0].transcript.toLowerCase();
-    updateStatus(`🎙️ "${said}"`);
-    const hits=searchKB(said);
-    if(hits.length){ document.getElementById('search-input').value=said; openSearch(); runSearch(said); }
+function openViewer(r, icon) {
+  document.getElementById('v-icon').innerText = icon;
+  document.getElementById('v-title').innerText = r.n;
+  document.getElementById('v-desc').innerText = r.d;
+  document.getElementById('v-link').href = r.u;
+  document.getElementById('viewer').classList.add('active');
+}
+function closeViewer() { document.getElementById('viewer').classList.remove('active'); }
+
+function resetUniverse() {
+  nodes.forEach(n => n.remove());
+  nodes = [];
+  svg.innerHTML = '';
+  cam = {x:0,y:0,z:1,rx:0,ry:0};
+  tgt = {x:0,y:0,z:1,rx:0,ry:0};
+  
+  const seed = document.createElement('div');
+  seed.className = 'seed-dot';
+  seed.onclick = (e) => {
+    e.stopPropagation();
+    seed.remove();
+    const roots = getChildren("Root", 0, []);
+    roots.forEach((r, i) => spawnNode(0, 0, 0, r, 1, i, roots.length, ["Root"]));
+    document.getElementById('status').innerText = "🌌 Navigating Knowledge...";
   };
-  voiceRecog.onerror=()=>{voiceEnabled=false;ic.innerText='👂';};
-  voiceRecog.onend=()=>{if(voiceEnabled)voiceRecog.start();};
-  voiceRecog.start();
-  voiceEnabled=true; ic.innerText='🔴';
-  updateStatus("🎙️ Listening… say a word");
+  hub.appendChild(seed);
+  document.getElementById('status').innerText = "✨ Touch the Golden Seed";
 }
 
-// ── IGNITION ──
-buildDots();
+function rollSurprise() {
+  resetUniverse();
+  setTimeout(() => {
+    const seed = hub.querySelector('.seed-dot');
+    if(seed) seed.click();
+  }, 500);
+}
+
+// ═══════════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════════
+document.getElementById('sel-provider').value = CFG.provider;
+document.getElementById('inp-key').value = CFG.key;
+document.getElementById('ai-tag').innerText = `ENGINE: ${CFG.provider.toUpperCase()}`;
 resetUniverse();
 renderLoop();
 </script>
