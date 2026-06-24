@@ -1,687 +1,669 @@
+html
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Fibonacci Knowledge Core · Pentagon Edition</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+<title>Khel.o · Living Universe v6</title>
 <style>
-  :root {
-    --bg: #050505; --gold: #d4af37; --text: #e8f5e8;
-    --rose: #fb7185; --cyan: #22d3ee; --green: #34d399; --violet: #a78bfa;
-    --pentagon-scale: 1.0;
-  }
-  body { margin: 0; background: var(--bg); color: var(--gold); font-family: 'Segoe UI', sans-serif; overflow: hidden; height: 100vh; }
+/* ── Reset ── */
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 
-  /* ==========================================
-     THE GUIDANCE LAYER
-     ========================================== */
-  #guide {
-    position: absolute; top: 40px; width: 100%; text-align: center;
-    color: rgba(212, 175, 55, 0.7); font-size: 14px; letter-spacing: 3px;
-    text-transform: uppercase; pointer-events: none; transition: opacity 0.5s ease; z-index: 10;
-  }
+body{
+  background:#010204;
+  color:#e2e8f0;
+  font-family:'Space Grotesk',system-ui,sans-serif;
+  overflow:hidden;
+  touch-action:none;
+  user-select:none;
+  height:100dvh;width:100dvw;
+}
 
-  /* ==========================================
-     THE UNIVERSAL HUB (Auto-Centered) — unchanged galaxy engine
-     ========================================== */
-  #hub {
-    position: fixed; top: 50%; left: 50%; width: 60px; height: 60px;
-    transform: translate(-50%, -50%); z-index: 50; cursor: grab;
-    display: flex; justify-content: center; align-items: center; touch-action: none;
-  }
-  #hub:active { cursor: grabbing; }
-  #scale-wrapper {
-    width: 300px; height: 300px; position: absolute;
-    transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
-    transform: scale(0.15); display: flex; justify-content: center; align-items: center;
-  }
-  #hub.idle #scale-wrapper { transform: scale(0.048); }
-  #hub.expanded #scale-wrapper { transform: scale(1); }
-  #scene { width: 100%; height: 100%; position: absolute; transform-style: preserve-3d; pointer-events: auto; }
-  .dot { transition: cx 1.2s cubic-bezier(0.34, 1.56, 0.64, 1), cy 1.2s cubic-bezier(0.34, 1.56, 0.64, 1), r 1s ease, fill 1.5s ease; }
-  #hub.expanded .dot { cursor: pointer; }
-  #hub.expanded .dot:hover { stroke: #fff; stroke-width: 1.5px; filter: drop-shadow(0 0 10px #fff); transform: scale(1.5); }
-  .node-wrapper { transition: transform 1s cubic-bezier(0.34, 1.56, 0.64, 1); }
-  .node-content { transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); cursor: pointer; }
-  .node-content:hover { transform: scale(1.3); }
-  .outer-node circle { fill: rgba(10,10,10,0.9); stroke: var(--gold); stroke-width: 1.5; transition: 0.3s; }
-  .outer-node text { pointer-events: none; transition: 0.3s; }
-  .outer-node:hover circle { fill: rgba(212, 175, 55, 0.2); filter: drop-shadow(0 0 10px var(--gold)); }
-  .center-node circle { fill: rgba(212, 175, 55, 0.15); stroke: var(--gold); stroke-width: 2; transition: 0.3s; }
-  .center-node text { pointer-events: none; transition: 0.3s; }
-  .center-node:hover circle { fill: rgba(212, 175, 55, 0.4); filter: drop-shadow(0 0 15px var(--gold)); }
+/* ── HUD telemetry ── */
+#hud{
+  position:fixed;top:0;left:0;right:0;
+  display:flex;justify-content:space-between;align-items:flex-start;
+  padding:clamp(12px,3vw,20px);
+  pointer-events:none;z-index:50;
+  background:linear-gradient(180deg,rgba(1,2,4,0.92) 60%,transparent);
+}
+.telemetry{
+  font-size:clamp(10px,2.5vw,13px);letter-spacing:3px;
+  text-transform:uppercase;color:#38bdf8;
+  text-shadow:0 0 10px rgba(56,189,248,0.6);font-weight:500;
+  line-height:1.6;
+}
+.coords{
+  font-size:clamp(9px,2vw,11px);color:#94a3b8;
+  text-align:right;letter-spacing:2px;line-height:1.7;
+}
+.hint{font-size:clamp(8px,1.8vw,10px);color:#475569;letter-spacing:1px;}
 
-  #msg {
-    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0);
-    background: rgba(5,5,5,0.95); border: 1px solid var(--gold); padding: 25px 35px;
-    border-radius: 12px; text-align: center; transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    pointer-events: none; z-index: 1000; box-shadow: 0 10px 40px rgba(0,0,0,0.8), 0 0 20px rgba(212,175,55,0.2);
-    min-width: 220px; max-width: 380px; width: 90%;
-  }
-  #msg.active { transform: translate(-50%, -50%) scale(1); pointer-events: auto; }
-  #msg h2 { margin: 0 0 10px 0; color: #fff; font-weight: 400; font-size: 20px; letter-spacing: 1px; }
-  #msg p { margin: 0 0 20px 0; font-size: 13px; color: #ccc; line-height: 1.6; }
-  .btn-container { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
-  button { background: transparent; border: 1px solid var(--gold); color: var(--gold); padding: 8px 20px; cursor: pointer; border-radius: 4px; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; transition: 0.3s; font-family: inherit; }
-  button:hover { background: var(--gold); color: #000; box-shadow: 0 0 15px rgba(212,175,55,0.4); }
-  .btn-primary { background: rgba(212,175,55,0.1); }
+/* ── Bottom toolbar — always visible, pointer-events on ── */
+#toolbar{
+  position:fixed;bottom:0;left:0;right:0;
+  display:flex;justify-content:space-around;align-items:center;
+  padding:clamp(8px,2.5vw,14px) 8px clamp(14px,4vw,26px);
+  background:linear-gradient(0deg,rgba(1,2,4,0.97) 75%,transparent);
+  z-index:50;gap:6px;pointer-events:auto;
+}
+.tb{
+  display:flex;flex-direction:column;align-items:center;gap:3px;
+  background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);
+  border-radius:16px;padding:10px 14px;cursor:pointer;flex:1;max-width:90px;
+  transition:background .2s,transform .15s;
+}
+.tb:active{background:rgba(255,255,255,0.12);transform:scale(0.93);}
+.tb .em{font-size:clamp(22px,6vw,30px);line-height:1;}
+.tb .lb{font-size:clamp(8px,2vw,10px);color:#64748b;letter-spacing:.5px;
+        text-transform:uppercase;font-weight:700;}
 
-  /* ==========================================
-     PENTAGON TRAY — new control layer (draggable + pinch/wheel resizable)
-     ========================================== */
-  #pentagon-wrap { position: fixed; z-index: 200; user-select: none; touch-action: none; cursor: grab; transform: scale(var(--pentagon-scale)); }
-  #pentagon-wrap:active { cursor: grabbing; }
-  .pwheel { position: relative; width: 140px; height: 140px; border-radius: 50%; overflow: hidden; transform: rotate(45deg); box-shadow: 0 15px 40px rgba(0,0,0,0.85), inset 0 0 15px rgba(212,175,55,0.15); background: #000; border: 1px solid rgba(212,175,55,0.25); }
-  .pquad { position: absolute; width: 50%; height: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: filter 0.2s; box-shadow: inset 0 0 10px rgba(0,0,0,0.7); }
-  .pquad:hover { filter: brightness(1.35); z-index: 5; }
-  .pquad .picon { transform: rotate(-45deg); font-size: 22px; color: #fff; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.6)); }
-  .pq-search { top:0; left:0; background: linear-gradient(135deg, var(--rose), #be123c); }
-  .pq-voice { top:0; right:0; background: linear-gradient(135deg, var(--cyan), #0e7490); }
-  .pq-library { bottom:0; right:0; background: linear-gradient(135deg, var(--green), #047857); }
-  .pq-settings { bottom:0; left:0; background: linear-gradient(135deg, var(--violet), #6d28d9); }
-  .pcore { position: absolute; top:50%; left:50%; transform: translate(-50%,-50%) rotate(-45deg); width: 54px; height: 54px; border-radius: 50%; background: radial-gradient(circle at 30% 30%, #fff8dc, var(--gold)); border: 3px solid #fff; display: flex; align-items: center; justify-content: center; z-index: 10; cursor: pointer; box-shadow: 0 0 20px rgba(212,175,55,0.5); transition: transform 0.3s cubic-bezier(0.175,0.885,0.32,1.275); }
-  .pcore:hover { transform: translate(-50%,-50%) rotate(-45deg) scale(1.12); }
-  .pcore span { font-size: 24px; color: #000; }
-  .pcore.rolling span { animation: pspin 0.4s linear infinite; }
-  @keyframes pspin { 100% { transform: rotate(360deg); } }
-  #voice-indicator { position: fixed; bottom: 210px; left: 50%; transform: translateX(-50%); font-size: 11px; letter-spacing: 2px; color: var(--cyan); opacity: 0; transition: 0.3s; pointer-events: none; text-transform: uppercase; }
-  #voice-indicator.live { opacity: 1; }
-  #voice-indicator.live::before { content: "🎙️ "; }
+/* ── Viewport ── */
+#viewport{position:absolute;top:50dvh;left:50dvw;}
+#hub{position:absolute;top:0;left:0;transform-style:preserve-3d;will-change:transform;}
 
-  /* ==========================================
-     PANELS (search / library / settings) — shared shell
-     ========================================== */
-  .panel { position: fixed; inset: 0; background: rgba(3,3,3,0.96); backdrop-filter: blur(16px); z-index: 300; display: none; flex-direction: column; padding: 32px 24px; overflow-y: auto; }
-  .panel.active { display: flex; }
-  .panel-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; max-width: 760px; width: 100%; margin-left: auto; margin-right: auto; }
-  .panel-head h2 { color: #fff; font-weight: 400; font-size: 1.4rem; letter-spacing: 1px; margin: 0; }
-  .panel-close { background: none; border: 1px solid rgba(212,175,55,0.4); color: var(--gold); width: 36px; height: 36px; border-radius: 50%; cursor: pointer; font-size: 16px; }
-  .panel-body { max-width: 760px; width: 100%; margin: 0 auto; }
-  .pinput { width: 100%; background: rgba(255,255,255,0.04); border: 1px solid rgba(212,175,55,0.25); border-radius: 10px; padding: 12px 16px; color: #fff; font-size: 0.95rem; outline: none; margin-bottom: 14px; font-family: inherit; }
-  .pinput:focus { border-color: var(--gold); }
-  .result-row { display:flex; align-items:center; gap:12px; background: rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.07); border-radius:12px; padding:14px 16px; margin-bottom:10px; }
-  .result-row a { color: var(--gold); text-decoration:none; font-weight:600; font-size:0.92rem; }
-  .result-row p { margin:4px 0 0; font-size:0.78rem; color:#aaa; }
-  .ext-row { display:flex; justify-content:space-between; align-items:center; padding:14px 16px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.07); border-radius:14px; margin-bottom:10px; }
-  .ext-row .nm { font-weight:600; font-size:0.9rem; color:#fff; }
-  .ext-row .ds { font-size:0.74rem; color:#999; margin-top:2px; }
-  .pswitch { position:relative; width:42px; height:23px; flex-shrink:0; }
-  .pswitch input { opacity:0; width:0; height:0; }
-  .pslider { position:absolute; inset:0; background:rgba(255,255,255,0.15); border-radius:24px; cursor:pointer; transition:0.25s; }
-  .pslider::before { content:''; position:absolute; width:17px; height:17px; left:3px; top:3px; background:#fff; border-radius:50%; transition:0.25s; }
-  input:checked + .pslider { background: var(--green); }
-  input:checked + .pslider::before { transform: translateX(19px); }
-  .warn { background: rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.3); border-radius:12px; padding:12px 14px; font-size:0.76rem; color:#fca5a5; margin-bottom:16px; line-height:1.5; }
-  .config-row { display:flex; gap:8px; margin-bottom:10px; }
-  .config-row label { width:140px; font-size:0.78rem; color:#999; padding-top:12px; flex-shrink:0; }
+/* ── SVG constellation lines ── */
+svg{
+  position:absolute;
+  top:-10000px;left:-10000px;
+  width:20000px;height:20000px;
+  pointer-events:none;
+  transform-style:preserve-3d;
+}
+.stellar-path{
+  fill:none;stroke-width:1.5;stroke-linecap:round;
+  filter:drop-shadow(0 0 4px currentColor);
+  stroke-dasharray:2000;stroke-dashoffset:2000;
+  animation:spark 1.4s cubic-bezier(.25,1,.5,1) forwards;
+}
+@keyframes spark{to{stroke-dashoffset:0}}
+
+/* ── Fibonacci dot ── */
+.dot{
+  position:absolute;border-radius:50%;cursor:pointer;
+  transform:translate3d(calc(-50% + var(--x)),calc(-50% + var(--y)),var(--z));
+  transition:transform .35s cubic-bezier(.34,1.56,.64,1),
+             box-shadow .3s,background .3s;
+  will-change:transform;
+  /* minimum 44px touch target even for tiny dots */
+  min-width:44px;min-height:44px;
+  display:flex;align-items:center;justify-content:center;
+}
+.dot .hit{
+  /* the visible circle inside the big tap zone */
+  border-radius:50%;background:var(--col);
+  width:var(--sz);height:var(--sz);
+  box-shadow:0 0 6px var(--col);
+  transition:transform .3s,box-shadow .3s;
+}
+.dot:hover .hit,.dot:active .hit{
+  transform:scale(2.2);
+  box-shadow:0 0 22px var(--col),0 0 40px var(--col);
+  z-index:100;
+}
+/* Golden seed */
+.seed-dot{
+  position:absolute;width:80px;height:80px;
+  transform:translate(-50%,-50%);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;border-radius:50%;
+}
+.seed-dot::after{
+  content:'';position:absolute;
+  width:clamp(16px,4vw,22px);height:clamp(16px,4vw,22px);
+  background:#d4af37;border-radius:50%;
+  box-shadow:0 0 40px 16px rgba(212,175,55,.7);
+  animation:breath 3s infinite ease-in-out;
+  transition:.3s;
+}
+.seed-dot:hover::after,.seed-dot:active::after{
+  transform:scale(1.8);background:#fff;
+  box-shadow:0 0 70px 30px rgba(212,175,55,.9);
+}
+@keyframes breath{0%,100%{transform:scale(1);opacity:.8}50%{transform:scale(1.5);opacity:1}}
+
+/* ── JSON domain nodes (spawn on dot click) ── */
+.jnode{
+  position:absolute;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  border-radius:50%;cursor:pointer;text-align:center;
+  background:rgba(10,15,25,0.65);border:1.5px solid;
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  transform:translate3d(calc(-50% + var(--x)),calc(-50% + var(--y)),var(--z)) scale(0);
+  animation:supernova .9s cubic-bezier(.34,1.56,.64,1) forwards;
+  will-change:transform;
+}
+.jnode:hover,.jnode:active{
+  background:currentColor!important;color:#000!important;
+  box-shadow:0 0 30px currentColor,inset 0 0 15px #fff;z-index:500;
+  transform:translate3d(calc(-50% + var(--x)),calc(-50% + var(--y)),calc(var(--z) + 50px)) scale(1.35)!important;
+}
+.jnode .ji{
+  font-size:clamp(18px,5vw,28px);
+  filter:drop-shadow(0 2px 5px rgba(0,0,0,.8));
+  transition:transform .3s;line-height:1;
+}
+.jnode:hover .ji{transform:scale(1.25);}
+.jnode .jl{
+  font-size:clamp(7px,1.8vw,10px);font-weight:700;
+  text-transform:uppercase;letter-spacing:1.5px;
+  margin-top:5px;pointer-events:none;
+}
+@keyframes supernova{to{transform:translate3d(calc(-50% + var(--x)),calc(-50% + var(--y)),var(--z)) scale(1)}}
+
+/* ── Search overlay ── */
+#search-overlay{
+  position:fixed;inset:0;background:rgba(1,2,4,.97);
+  backdrop-filter:blur(16px);z-index:200;
+  display:none;flex-direction:column;
+  padding:clamp(16px,5vw,32px);
+  animation:fadeUp .25s ease;
+}
+#search-overlay.active{display:flex;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+#search-wrap{display:flex;gap:10px;align-items:center;margin-bottom:16px;}
+#search-input{
+  flex:1;background:rgba(255,255,255,0.05);
+  border:2px solid rgba(56,189,248,.35);border-radius:50px;
+  padding:clamp(12px,3.5vw,16px) 20px;color:#fff;
+  font-size:clamp(16px,4.5vw,20px);outline:none;font-family:inherit;font-weight:600;
+}
+#search-input::placeholder{color:#334155;}
+#search-close{
+  width:clamp(44px,12vw,54px);height:clamp(44px,12vw,54px);
+  border-radius:50%;background:rgba(255,255,255,0.07);
+  border:none;color:#94a3b8;font-size:20px;cursor:pointer;flex-shrink:0;
+}
+#search-results{overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:10px;}
+.s-card{
+  display:flex;align-items:center;gap:14px;
+  background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);
+  border-radius:18px;padding:clamp(12px,3.5vw,18px);cursor:pointer;
+  animation:fadeUp .3s both;transition:background .2s;
+}
+.s-card:active{background:rgba(255,255,255,0.09);}
+.s-em{font-size:clamp(28px,8vw,40px);flex-shrink:0;line-height:1;}
+.s-body h3{margin:0 0 3px;font-size:clamp(14px,4vw,18px);color:#fff;font-weight:700;}
+.s-body p{margin:0;font-size:clamp(10px,2.8vw,13px);color:#475569;line-height:1.4;}
+.s-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px;}
+.s-tag{background:rgba(56,189,248,.12);color:#38bdf8;
+       padding:2px 9px;border-radius:20px;
+       font-size:clamp(8px,2.2vw,11px);font-weight:700;}
+
+/* ── Detail sheet ── */
+#detail{
+  position:fixed;bottom:-100%;left:0;right:0;
+  background:rgba(5,8,15,.98);border-top:1.5px solid rgba(212,175,55,.3);
+  border-radius:28px 28px 0 0;z-index:150;
+  padding:clamp(18px,5vw,28px);
+  transition:bottom .45s cubic-bezier(.34,1.56,.64,1);
+  max-height:55vh;overflow-y:auto;
+}
+#detail.open{bottom:0;}
+#detail .handle{width:42px;height:5px;background:rgba(255,255,255,.18);
+               border-radius:4px;margin:0 auto 16px;}
+#d-icon{font-size:clamp(46px,13vw,68px);text-align:center;margin-bottom:8px;}
+#d-title{font-size:clamp(17px,5vw,24px);color:#fff;font-weight:800;text-align:center;margin:0 0 6px;}
+#d-desc{font-size:clamp(12px,3.3vw,15px);color:#64748b;text-align:center;line-height:1.6;margin:0 0 16px;}
+#d-links{display:flex;flex-direction:column;gap:9px;}
+.d-link{
+  display:flex;align-items:center;gap:10px;
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);
+  border-radius:14px;padding:13px 16px;color:#a7f3d0;
+  text-decoration:none;font-size:clamp(12px,3.3vw,14px);font-weight:600;
+  transition:background .2s;
+}
+.d-link:active{background:rgba(255,255,255,.11);}
+.d-close{width:100%;margin-top:12px;padding:13px;
+  background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);
+  color:#f87171;border-radius:14px;font-size:clamp(13px,4vw,15px);
+  font-weight:700;cursor:pointer;}
 </style>
 </head>
 <body>
 
-<div id="guide">🌱 Awaken the Seed</div>
-
-<div id="hub" class="idle">
-  <div id="scale-wrapper">
-    <svg id="scene" viewBox="-100 -100 200 200"></svg>
+<!-- ── HUD ── -->
+<div id="hud">
+  <div class="telemetry">
+    <div id="status">✨ Touch the Golden Seed</div>
+    <div id="browser-tag" style="font-size:9px;color:#334155;letter-spacing:2px;margin-top:3px;"></div>
+  </div>
+  <div class="coords">
+    <div id="coord-display">Z: 1.000</div>
+    <div class="hint">DOUBLE-TAP TO RESET</div>
   </div>
 </div>
 
-<div id="msg"><div id="msg-content"></div></div>
-<div id="voice-indicator">Listening for a category...</div>
+<!-- ── 3D viewport ── -->
+<div id="viewport"><div id="hub"><svg id="lines"></svg></div></div>
 
-<!-- ===== PENTAGON TRAY ===== -->
-<div id="pentagon-wrap">
-  <div class="pwheel">
-    <div class="pquad pq-search" onclick="Pentagon.tap(this,'jumpContribution')" title="Contribution Economy"><span class="picon">🤲</span></div>
-    <div class="pquad pq-voice" onclick="Pentagon.tap(this,'jumpRelevance')" title="Relevance Filter"><span class="picon">🎯</span></div>
-    <div class="pquad pq-library" onclick="Pentagon.tap(this,'openLibrary')" title="Library"><span class="picon">📖</span></div>
-    <div class="pquad pq-settings" onclick="Pentagon.tap(this,'openSettings')" title="Settings & Extensions"><span class="picon">⚙️</span></div>
-    <div class="pcore" id="pcore" onclick="Pentagon.tap(this,'rollDice')" title="Open dice hub"><span>🎲</span></div>
-  </div>
+<!-- ── Bottom toolbar ── -->
+<div id="toolbar">
+  <div class="tb" onclick="openSearch()"><span class="em">🔍</span><span class="lb">Search</span></div>
+  <div class="tb" onclick="resetUniverse()"><span class="em">🌱</span><span class="lb">Seed</span></div>
+  <div class="tb" onclick="rollSurprise()"><span class="em">🎲</span><span class="lb">Dice</span></div>
+  <div class="tb" onclick="toggleVoice()"><span class="em" id="v-icon">👂</span><span class="lb">Voice</span></div>
 </div>
 
-<!-- ===== SEARCH PANEL ===== -->
-<div class="panel" id="panel-search">
-  <div class="panel-head"><h2>🔍 Search the Knowledge Core</h2><button class="panel-close" onclick="Pentagon.close('panel-search')">×</button></div>
-  <div class="panel-body">
-    <input class="pinput" id="search-input" placeholder="Search kids.miraheze.org and event listings..." onkeypress="if(event.key==='Enter') Pentagon.runSearch()">
-    <button onclick="Pentagon.runSearch()" style="width:100%; margin-bottom:20px;">Search</button>
-    <div id="search-results"></div>
+<!-- ── Search ── -->
+<div id="search-overlay">
+  <div id="search-wrap">
+    <input id="search-input" type="search" placeholder="🌱 water • music • why?" autocomplete="off"
+           oninput="runSearch(this.value)">
+    <button id="search-close" onclick="closeSearch()">✕</button>
   </div>
+  <div id="search-results"></div>
 </div>
 
-<!-- ===== LIBRARY PANEL (flat list, complements the radial galaxy) ===== -->
-<div class="panel" id="panel-library">
-  <div class="panel-head"><h2>📖 Library</h2><button class="panel-close" onclick="Pentagon.close('panel-library')">×</button></div>
-  <div class="panel-body" id="library-body"></div>
-</div>
-
-<!-- ===== SETTINGS / EXTENSIONS PANEL ===== -->
-<div class="panel" id="panel-settings">
-  <div class="panel-head"><h2>⚙️ Settings & Extensions</h2><button class="panel-close" onclick="Pentagon.close('panel-settings')">×</button></div>
-  <div class="panel-body">
-    <div id="ext-list"></div>
-    <hr style="border-color:rgba(255,255,255,0.08); margin:20px 0;">
-    <h3 style="color:#fff; font-weight:400; font-size:1rem; margin-bottom:10px;">Configuration</h3>
-    <div class="warn">This file lives in a public GitHub repo. Anything typed into the fields below and committed is readable by anyone who views the file — including API keys and database passwords. Leave these blank unless you're running a private fork, or wire them through a small backend instead of hardcoding them here.</div>
-    <div class="config-row"><label>Amazon affiliate tag</label><input class="pinput" id="cfg-amazon" placeholder="amazon0339f-21" style="margin-bottom:0;"></div>
-    <div class="config-row"><label>UPI payee ID</label><input class="pinput" id="cfg-upi" placeholder="yourname@upi" style="margin-bottom:0;"></div>
-    <div class="config-row"><label>Neo4j URI</label><input class="pinput" id="cfg-neo4j-uri" placeholder="neo4j+s://... (leave blank — see warning)" style="margin-bottom:0;"></div>
-    <div class="config-row"><label>AI API key</label><input class="pinput" id="cfg-ai-key" placeholder="leave blank — see warning" style="margin-bottom:0;"></div>
-    <button onclick="Pentagon.saveConfig()" style="margin-top:14px;">Save (this browser only)</button>
-    <div id="upi-qr-area" style="margin-top:20px;"></div>
-  </div>
+<!-- ── Detail sheet ── -->
+<div id="detail">
+  <div class="handle" onclick="closeDetail()"></div>
+  <div id="d-icon"></div>
+  <div id="d-title"></div>
+  <div id="d-desc"></div>
+  <div id="d-links"></div>
+  <button class="d-close" onclick="closeDetail()">✕ Close</button>
 </div>
 
 <script>
+// ============================================================
+//  STEP 0 — BROWSER / OS DETECTION
+//  Runs once at boot. Adapts rendering budget so the same file
+//  works on a 2015 Android phone and a desktop Chrome tab.
+// ============================================================
+const ENV = (() => {
+  const ua = navigator.userAgent;
+  const ios     = /iPad|iPhone|iPod/.test(ua);
+  const android = /Android/.test(ua);
+  const safari  = /^((?!chrome|android).)*safari/i.test(ua);
+  const lowPow  = /Android [1-6]\./.test(ua) || navigator.hardwareConcurrency <= 2;
+  const w = window.innerWidth, h = window.innerHeight;
+  const mobile  = Math.min(w,h) < 600;
+  const ratio   = window.devicePixelRatio || 1;
+  // Clamp pixel ratio on low-power devices to avoid overdraw
+  if(lowPow) { try{ document.querySelector('meta[name=viewport]').content += ',maximum-scale=2'; }catch(e){} }
+  document.getElementById('browser-tag').innerText =
+    `${ios?'iOS':android?'Android':'Desktop'} · ${mobile?'Mobile':'Wide'} · DPR ${ratio.toFixed(1)}${lowPow?' · ECO':''}`;
+  return { ios, android, safari, lowPow, mobile, w, h,
+    // How many fibonacci dots to render — fewer on low-power
+    dotCount: lowPow ? 80 : (mobile ? 120 : 200),
+    // How large outer ring radius should be (fraction of smaller screen dimension)
+    ringFrac: mobile ? 0.38 : 0.32,
+    // Base node size for outer category nodes
+    outerSz: mobile ? Math.max(52, Math.min(w*0.13, 72)) : 64,
+    // Auto-rotation speed (disabled on low-power to save battery)
+    autoSpin: !lowPow,
+  };
+})();
+
+// ============================================================
+//  KNOWLEDGE BASE — 15 symbol-first entries, bilingual tags
+// ============================================================
+const KB = [
+  {icon:"💧",title:"Water",desc:"Clean water is the foundation of every life.",tags:["water","river","jal","rain","nadi","ocean","samudra"],catKey:"Where",links:[{label:"Water.org",url:"https://water.org"},{label:"WHO Water",url:"https://www.who.int/health-topics/drinking-water"}]},
+  {icon:"🌱",title:"Seed & Soil",desc:"Plant one seed. It works while you sleep.",tags:["seed","soil","farm","grow","kisan","mitti","krishi"],catKey:"How",links:[{label:"Navdanya",url:"https://navdanya.org"},{label:"FAO Soils",url:"https://www.fao.org/soils-portal"}]},
+  {icon:"🎵",title:"Music & Sound",desc:"Sound is the first healer.",tags:["music","song","sing","drum","raga","geet","dhvani","sound"],catKey:"Art",links:[{label:"Internet Archive Audio",url:"https://archive.org/details/audio"},{label:"Kids Music Wiki",url:"https://kids.miraheze.org/wiki/Music"}]},
+  {icon:"💃",title:"Dance & Movement",desc:"The body knows what the mind forgets.",tags:["dance","move","yoga","body","nritya","sport","play"],catKey:"Dance",links:[{label:"Open Yoga",url:"https://www.yogajournal.com"},{label:"Dance Wiki",url:"https://kids.miraheze.org/wiki/Dance"}]},
+  {icon:"📚",title:"Learn",desc:"One page a day. One skill forever.",tags:["learn","read","book","school","vidya","gyan","study"],catKey:"What",links:[{label:"Khan Academy",url:"https://khanacademy.org"},{label:"Kids Wiki",url:"https://kids.miraheze.org"}]},
+  {icon:"🌍",title:"Earth",desc:"The planet is the teacher. Observe it.",tags:["earth","ecology","nature","forest","dharti","vayu","environment"],catKey:"Where",links:[{label:"WWF",url:"https://wwf.org"},{label:"Global Forest Watch",url:"https://globalforestwatch.org"}]},
+  {icon:"🤝",title:"Community",desc:"10 people + one Saturday + one action = change.",tags:["community","together","sahyog","volunteer","ngo","group","help"],catKey:"Why",links:[{label:"Idealist",url:"https://idealist.org"},{label:"Open Collective",url:"https://opencollective.com"}]},
+  {icon:"🍎",title:"Food & Health",desc:"Food is the first medicine.",tags:["food","health","eat","cook","anna","swastha","medicine","nutrition"],catKey:"How",links:[{label:"Open Food Facts",url:"https://world.openfoodfacts.org"},{label:"WHO Nutrition",url:"https://www.who.int/health-topics/nutrition"}]},
+  {icon:"☀️",title:"Energy",desc:"The sun gives more in one hour than we use in a year.",tags:["energy","solar","sun","light","power","urja","electricity"],catKey:"What",links:[{label:"IRENA",url:"https://irena.org"},{label:"Open Energy Monitor",url:"https://openenergymonitor.org"}]},
+  {icon:"🎨",title:"Art & Creation",desc:"Making something is the first act of intelligence.",tags:["art","draw","create","colour","kala","design","chitrakari","paint"],catKey:"Art",links:[{label:"Open Library",url:"https://openlibrary.org"},{label:"Art Wiki",url:"https://kids.miraheze.org/wiki/Art"}]},
+  {icon:"🧠",title:"Mind",desc:"Curiosity is the only tool you always have.",tags:["mind","think","brain","idea","curious","mann","buddhi","question"],catKey:"Why",links:[{label:"Mind Wiki",url:"https://kids.miraheze.org/wiki/Brain"},{label:"Khan Academy",url:"https://khanacademy.org"}]},
+  {icon:"🚀",title:"Space & Stars",desc:"We are made of stardust. Look up.",tags:["space","star","moon","planet","sky","cosmos","akash","tara"],catKey:"Space",links:[{label:"NASA",url:"https://nasa.gov"},{label:"ESA",url:"https://esa.int"}]},
+  {icon:"🌊",title:"Ocean & Rivers",desc:"Rivers connect mountains to the sea.",tags:["water","ocean","river","fish","sea","nadi","samudra","blue"],catKey:"Where",links:[{label:"OBIS",url:"https://obis.org"},{label:"GBIF Marine",url:"https://gbif.org"}]},
+  {icon:"🎭",title:"Story",desc:"A story told once travels a thousand miles.",tags:["story","theatre","drama","culture","katha","natak","perform"],catKey:"Art",links:[{label:"Archive Stories",url:"https://archive.org/details/texts"},{label:"Story Wiki",url:"https://kids.miraheze.org/wiki/Theatre"}]},
+  {icon:"🤲",title:"Contribution",desc:"Only what outlasts your effort counts.",tags:["contribute","give","share","help","seva","daan","action","build"],catKey:"Why",links:[{label:"Kids Miraheze",url:"https://kids.miraheze.org"},{label:"OpenStreetMap",url:"https://openstreetmap.org"}]},
+];
+
+function searchKB(q){
+  if(!q) return KB;
+  const words = q.toLowerCase().split(/\s+/).filter(Boolean);
+  return KB.map(item=>{
+    let score=0;
+    const hay=(item.title+' '+item.tags.join(' ')+' '+item.desc).toLowerCase();
+    words.forEach(w=>{ if(hay.includes(w)) score+=(item.title.toLowerCase().includes(w)?3:1); });
+    return {...item,score};
+  }).filter(i=>i.score>0).sort((a,b)=>b.score-a.score);
+}
+
+// ============================================================
+//  JSON DOMAIN DATA (drives the constellation expansion)
+// ============================================================
+const DOMAINS = [
+  {name:"Individual",icon:"👤",color:"#38bdf8",layers:["🌱 Potential","🍚 Energy","🔥 Discipline","👑 Ego","🌸 Realization"]},
+  {name:"Community",icon:"👪",color:"#c084fc",layers:["🌱 Belonging","🍚 Capital","🔥 Culture","👑 Power","🌸 Harmony"]},
+  {name:"Ecology",   icon:"🌱",color:"#10b981",layers:["🌱 Resource","🍚 Material","🔥 Production","👑 Exploitation","🌸 Circular"]},
+  {name:"Earth Eng", icon:"⚙️",color:"#94a3b8",layers:["🌱 Shelter","🍚 Structure","🔥 Ethics","👑 Concrete","🌸 Living"]},
+  {name:"Discovery", icon:"🔭",color:"#818cf8",layers:["🌱 Inquiry","🍚 Data","🔥 Method","👑 Truth","🌸 Cosmic"]},
+  {name:"Innovation",icon:"💡",color:"#f59e0b",layers:["🌱 Spark","🍚 Craft","🔥 Iteration","👑 Ownership","🌸 Beauty"]},
+  {name:"Sahyog",    icon:"🤝",color:"#f43f5e",layers:["🌱 Purpose","🍚 Trust","🔥 Clarity","👑 Credit","🌸 Emergent"]},
+  {name:"Mukti",     icon:"🕊️",color:"#a7f3d0",layers:["🌱 Longing","🍚 Letting go","🔥 Discernment","👑 Illusion","🌸 Union"]},
+];
+
+const CAT_COLORS=["#d4af37","#10b981","#38bdf8","#f59e0b","#c084fc","#ec4899","#f43f5e","#a7f3d0"];
+
+// ============================================================
+//  CAMERA STATE — lerped every frame for silky motion
+// ============================================================
+let cam  = {x:0,y:0,z:1,rx:0,ry:0};
+let tgt  = {x:0,y:0,z:ENV.mobile?0.5:1,rx:0,ry:0};
+
 const hub = document.getElementById('hub');
-const scene = document.getElementById('scene');
-const guide = document.getElementById('guide');
-const dots = [];
-const nodes = [];
-let currentLayer = 'cosmos';
+const svg = document.getElementById('lines');
+const SVG_O = 10000; // SVG coordinate offset (so (0,0) in scene = (10000,10000) in SVG)
 
-// ==========================================
-// 1. DATA LAYER (unchanged from the original file)
-// ==========================================
-const SOURCES = {
-    cosmos:       { icon: "✨", color: "#d4af37", name: "Cosmos" },
-    contribution: { icon: "🤲", color: "#fcd34d", name: "Contribution" },
-    relevance:    { icon: "🎯", color: "#f97316", name: "Relevance" },
-    ecology:      { icon: "🌱", color: "#66ff66", name: "Ecology" },
-    books:        { icon: "📚", color: "#ff6699", name: "Books" },
-    events:       { icon: "📅", color: "#00ffff", name: "Events" },
-    organizations:{ icon: "🤝", color: "#ffaa00", name: "Organizations" },
-    research:     { icon: "🔬", color: "#ffffff", name: "Research" }
-};
-const MOCK_DATA = {
-    contribution: [
-        "Plant a seed — it outlasts the effort",
-        "Write one wiki page — it works while you sleep",
-        "Deploy one URL — anyone can open it",
-        "Teach one skill — it multiplies through others",
-        "Document a local practice — it survives the person",
-        "Fix one real problem for one real person",
-        "Create something a stranger can use without asking you"
-    ],
-    relevance: [
-        "Does this output outlast the effort?",
-        "Can someone else build on this without me?",
-        "Is walking there better than sending a message?",
-        "Does this solve the problem or describe it?",
-        "Who specifically benefits — and when?",
-        "Is this the shortest path to a real result?",
-        "Would this still matter next year?"
-    ],
-    ecology: ["River Cleanup Initiative", "Urban Permaculture", "Solar Grid Design", "Seed Bank Database", "Mycelium Networks"],
-    books: ["Atomic Habits", "Design of Everyday Things", "The Fair Play Deck", "Thinking, Fast and Slow", "Sapiens"],
-    events: ["Local Hackathon", "Tree Planting Drive", "Open Source Summit", "Yoga Retreat", "Maker Faire"],
-    organizations: ["OpenAI", "Linux Foundation", "Khel.o Trust", "Red Cross", "Local Library"],
-    research: ["Quantum Entanglement", "CRISPR Editing", "AGI Safety", "Sustainable Concrete", "Neuroplasticity"]
-};
+let S_state=0, lastTap=0, drag=false, lx, ly, startX, startY;
+let pinchDist=0;
+let jnodes=[];  // all spawned JSON domain nodes
+let voiceEnabled=false, voiceRecog=null;
 
-// ==========================================
-// 2. DOM INITIALIZATION — unchanged dot/galaxy engine
-// ==========================================
-for (let i = 1; i <= 200; i++) {
-    let r = 5.5 * Math.sqrt(i);
-    let a = i * 137.508 * Math.PI / 180;
-    let radius = i < 15 ? 3 : 0.5 + (i / 150);
-    let dot = document.createElementNS("http://www.w3.org/2000/svg", 'circle');
-    dot.setAttribute("cx", 0); dot.setAttribute("cy", 0); dot.setAttribute("r", radius);
-    dot.classList.add('dot');
-    dot.tx = r * Math.cos(a); dot.ty = r * Math.sin(a);
-    dot.onmouseover = () => {
-        if (hub.classList.contains('expanded') && !isDragging && dot.dataset.title) {
-            guide.innerHTML = `✨ Discover: ${dot.dataset.title}`;
-            guide.style.color = "#fff";
-            if (Voice.readAloud) Voice.speak(dot.dataset.title);
-        }
-    };
-    dot.onmouseout = () => {
-        if (hub.classList.contains('expanded')) {
-            guide.innerHTML = `🌌 Exploring ${SOURCES[currentLayer].name} Dimension`;
-            guide.style.color = "rgba(212, 175, 55, 0.7)";
-        }
-    };
-    dot.onclick = (e) => { e.stopPropagation(); if (hub.classList.contains('expanded') && !hasDragged) { haptic(); SHOW(dot.dataset); } };
-    scene.appendChild(dot);
-    dots.push(dot);
+// ============================================================
+//  FIBONACCI DOTS (the starfield — clicks fire the expansion)
+// ============================================================
+const dots=[];
+function buildDots(){
+  // Remove old dots
+  dots.forEach(d=>d.remove()); dots.length=0;
+  const N = ENV.dotCount;
+  for(let i=1;i<=N;i++){
+    const a=i*137.508*Math.PI/180;
+    const r=16*Math.sqrt(i);
+    const x=r*Math.cos(a), y=-r*Math.sin(a);
+    const z3d=Math.sin(r/40)*60;
+    const col=CAT_COLORS[i%CAT_COLORS.length];
+    const sz=Math.max(4,Math.min(10,3+i/30));
+
+    const el=document.createElement('div');
+    el.className='dot';
+    el.style.cssText=`--x:${x}px;--y:${y}px;--z:${z3d}px;--col:${col};--sz:${sz}px;`;
+    el.innerHTML=`<div class="hit"></div>`;
+    el.dataset.dotIdx=i;
+    el.dataset.x=x; el.dataset.y=y; el.dataset.z=z3d; el.dataset.col=col;
+    hub.appendChild(el);
+    dots.push(el);
+  }
 }
 
-// ==========================================
-// 3. RECURSIVE ENGINE — unchanged
-// ==========================================
-async function NEXT(layer) {
-    document.getElementById('msg').classList.remove('active');
-    currentLayer = layer;
-    guide.innerHTML = `🌀 Aligning ${SOURCES[layer].name} matrix...`;
-    if (Voice.readAloud) Voice.speak(`Aligning ${SOURCES[layer].name}`);
-    dots.forEach(el => { el.setAttribute("cx", 0); el.setAttribute("cy", 0); });
-    setTimeout(() => {
-        let layerColor = SOURCES[layer].color;
-        let keys = Object.keys(SOURCES);
-        dots.forEach((dot, i) => {
-            dot.style.fill = layerColor;
-            dot.style.opacity = 0.3 + (Math.random() * 0.7);
-            let nextRecursion = keys[Math.floor(Math.random() * keys.length)];
-            let titleSource = MOCK_DATA[layer] || MOCK_DATA.research;
-            let mockTitle = titleSource[i % titleSource.length];
-            dot.dataset.icon = SOURCES[layer].icon;
-            dot.dataset.title = i < 15 ? mockTitle : `${SOURCES[layer].name} Fragment #${i}`;
-            dot.dataset.description = `Encrypted databank for ${layer} protocol. Signature ${Math.random().toString(36).substr(2, 5)}.`;
-            dot.dataset.related = nextRecursion;
-            dot.dataset.layerColor = layerColor;
-        });
-        if (hub.classList.contains('expanded')) {
-            dots.forEach(el => { el.setAttribute("cx", el.tx); el.setAttribute("cy", el.ty); });
-            guide.innerHTML = `🌌 Exploring ${SOURCES[layer].name} Dimension`;
-        }
-    }, 1000);
-}
+// ============================================================
+//  CONSTELLATION EXPANSION (click a dot → James Webb expansion)
+// ============================================================
+function spawnJNode(px,py,pz,data,level,index,total){
+  const baseR = level===1 ? (ENV.mobile?900:1200) : (ENV.mobile?200:280);
+  let x,y,z;
 
-// ==========================================
-// 4. UNIVERSAL UI & GATEWAYS — unchanged
-// ==========================================
-function SHOW(data) {
-    const content = document.getElementById('msg-content');
-    content.innerHTML = `
-        <h2>${data.icon} ${data.title}</h2>
-        <p>${data.description}</p>
-        <div class="btn-container">
-            <button onclick="document.getElementById('msg').classList.remove('active')">Close</button>
-            <button class="btn-primary" onclick="NEXT('${data.related}')" style="border-color:${data.layerColor}; color:${data.layerColor}">
-                Explore ${data.related.toUpperCase()}
-            </button>
-        </div>`;
-    document.getElementById('msg').classList.add('active');
-    if (Voice.readAloud) Voice.speak(`${data.title}. ${data.description}`);
-}
+  if(level===1){
+    // Domain ring — circular
+    const a=(index/total)*Math.PI*2;
+    x=px+baseR*Math.cos(a);
+    y=py+baseR*Math.sin(a);
+    z=pz+Math.sin(a*3)*80;
+  } else {
+    // Children — golden angle fibonacci
+    const a=index*2.39996;
+    const r=baseR*Math.sqrt(index+1)*0.6;
+    x=px+r*Math.cos(a);
+    y=py+r*Math.sin(a);
+    z=pz+(index%2===0?50:-50)+level*120;
+  }
 
-// ----------------------------------------------------------
-// The dice's own pop-out — a real starting menu instead of a
-// silent collapse/jump. Voice ("the ear") lives here directly,
-// alongside the same actions the Pentagon Tray offers, so the
-// center of the design and the floating tray stay in sync.
-// ----------------------------------------------------------
-function openDiceHub() {
-    haptic();
-    const content = document.getElementById('msg-content');
-    const voiceLabel = Voice.enabled ? '🔇 Stop Listening' : '🎙️ Voice (the Ear)';
-    let buttons = '';
-    buttons += `<button class="btn-primary" onclick="document.getElementById('msg').classList.remove('active'); Pentagon.rollDice();">🌀 Surprise Me</button>`;
-    buttons += `<button onclick="document.getElementById('msg').classList.remove('active'); Pentagon.jumpContribution();">🤲 Contribution</button>`;
-    buttons += `<button onclick="document.getElementById('msg').classList.remove('active'); Pentagon.jumpRelevance();">🎯 Relevance</button>`;
-    buttons += `<button onclick="document.getElementById('msg').classList.remove('active'); Pentagon.openSearch();">🔍 Search</button>`;
-    buttons += `<button onclick="document.getElementById('msg').classList.remove('active'); Pentagon.openLibrary();">📖 Library</button>`;
-    buttons += `<button onclick="Voice.enabled ? Voice.stop() : Voice.start(); openDiceHub();">${voiceLabel}</button>`;
-    buttons += `<button onclick="document.getElementById('msg').classList.remove('active'); Pentagon.openSettings();">⚙️ Settings</button>`;
-    buttons += currentLayer !== 'cosmos'
-        ? `<button onclick="document.getElementById('msg').classList.remove('active'); NEXT('cosmos');">🏠 Cosmos</button>`
-        : `<button onclick="document.getElementById('msg').classList.remove('active'); toggleExpansion();">🌱 Collapse</button>`;
-    content.innerHTML = `
-        <h2>🎲 Knowledge Dice</h2>
-        <p style="font-size:0.8rem; color:#aaa; margin-bottom:16px;">
-            <strong style="color:#fcd34d;">🤲 Contribution</strong> — what outlasts your effort &nbsp;|&nbsp;
-            <strong style="color:#f97316;">🎯 Relevance</strong> — is this the right action?
-        </p>
-        <div class="btn-container">${buttons}</div>`;
-    document.getElementById('msg').classList.add('active');
-}
+  const color=data.color||"#38bdf8";
+  const sz=level===1?(ENV.mobile?60:78):(ENV.mobile?42:52);
 
-function createGatewayNode(tx, ty, r, iconText, targetLayer, className) {
-    let wrapper = document.createElementNS("http://www.w3.org/2000/svg", "g");
-    wrapper.classList.add('node-wrapper');
-    wrapper.style.transform = "translate(0px, 0px) scale(0)";
-    wrapper.tx = tx; wrapper.ty = ty;
-    let content = document.createElementNS("http://www.w3.org/2000/svg", "g");
-    content.classList.add('node-content', className);
-    let bg = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-    bg.setAttribute("r", r);
-    let text = document.createElementNS("http://www.w3.org/2000/svg", "text");
-    text.setAttribute("text-anchor", "middle"); text.setAttribute("dominant-baseline", "central");
-    text.setAttribute("font-size", r * 1.2); text.textContent = iconText;
-    content.appendChild(bg); content.appendChild(text); wrapper.appendChild(content);
-    content.onmouseover = () => { if (hub.classList.contains('expanded') && !isDragging) guide.innerHTML = `✨ Enter ${SOURCES[targetLayer].name}`; };
-    content.onmouseout = () => { if (hub.classList.contains('expanded') && !isDragging) guide.innerHTML = `🌌 Exploring ${SOURCES[currentLayer].name} Dimension`; };
-    content.onclick = (e) => { e.stopPropagation(); if (hub.classList.contains('expanded') && !hasDragged) { haptic(); NEXT(targetLayer); } };
-    scene.appendChild(wrapper);
-    nodes.push(wrapper);
-}
-const gatewayKeys = Object.keys(SOURCES).filter(k => k !== 'cosmos');
-for (let i = 0; i < 5; i++) {
-    let a = (i * 72 - 90) * (Math.PI / 180);
-    createGatewayNode(85 * Math.cos(a), 85 * Math.sin(a), 16, SOURCES[gatewayKeys[i]].icon, gatewayKeys[i], 'outer-node');
-}
-let centerNode = document.createElementNS("http://www.w3.org/2000/svg", "g");
-centerNode.classList.add('center-node');
-centerNode.innerHTML = `<circle cx="0" cy="0" r="22"/><text x="0" y="0" text-anchor="middle" dominant-baseline="central" font-size="24">🎲</text>`;
-centerNode.onmouseover = () => { if (hub.classList.contains('expanded') && !isDragging) guide.innerHTML = `🎲 Open the Knowledge Dice`; };
-centerNode.onclick = (e) => {
+  // Draw SVG bezier line to parent
+  const path=document.createElementNS("http://www.w3.org/2000/svg","path");
+  const mx=(px+x)/2-(y-py)*0.15+SVG_O;
+  const my=(py+y)/2+(x-px)*0.15+SVG_O;
+  path.setAttribute("d",`M${px+SVG_O} ${py+SVG_O} Q${mx} ${my} ${x+SVG_O} ${y+SVG_O}`);
+  path.setAttribute("class","stellar-path");
+  path.style.stroke=color;
+  path.style.strokeOpacity=level===1?"0.3":"0.65";
+  path.style.animationDelay=`${index*0.07}s`;
+  svg.appendChild(path);
+
+  const el=document.createElement('div');
+  el.className='jnode';
+  el.style.cssText=`--x:${x}px;--y:${y}px;--z:${z}px;width:${sz}px;height:${sz}px;color:${color};border-color:${color};animation-delay:${index*0.08}s;`;
+  el.innerHTML=`<div class="ji">${data.icon}</div><div class="jl" style="color:${color}">${data.name}</div>`;
+  el.dataset.level=level; el.dataset.expanded="false";
+
+  el.onclick=e=>{
     e.stopPropagation();
-    if (hasDragged) return;
-    if (!hub.classList.contains('expanded')) { toggleExpansion(); setTimeout(openDiceHub, 900); return; }
-    openDiceHub();
-};
-scene.appendChild(centerNode);
+    // Camera zoom toward clicked node
+    tgt.x=-x; tgt.y=-y;
+    tgt.z=level===1?0.7:1.3;
+    updateStatus(`🔭 ${data.name}`);
 
-function toggleExpansion() {
-    let expand = hub.classList.contains('ready') || hub.classList.contains('idle');
-    hub.className = expand ? 'expanded' : 'ready';
-    guide.innerHTML = expand ? `🌌 Exploring ${SOURCES[currentLayer].name} Dimension` : "✨ Touch the seed to expand";
-    guide.style.opacity = expand ? "0.8" : "1";
-    dots.forEach(el => { el.setAttribute("cx", expand ? el.tx : 0); el.setAttribute("cy", expand ? el.ty : 0); });
-    nodes.forEach(el => { el.style.transform = expand ? `translate(${el.tx}px, ${el.ty}px) scale(1)` : `translate(0px, 0px) scale(0)`; });
+    if(el.dataset.expanded==="true") return;
+    el.dataset.expanded="true";
+
+    if(level===1 && data.layers){
+      // Dim siblings
+      jnodes.forEach(n=>{if(n!==el&&n.dataset.level==="1")n.style.opacity="0.2";});
+      data.layers.forEach((lname,i)=>{
+        const p=lname.split(' ');
+        spawnJNode(x,y,z,{icon:p[0],name:p[1],color},2,i,data.layers.length);
+      });
+    }
+  };
+
+  hub.appendChild(el);
+  jnodes.push(el);
 }
 
-// ==========================================
-// 5. PHYSICS & 3D ZOOM ENGINE — unchanged
-// ==========================================
-let isDragging = false, hasDragged = false, lastX, lastY, rotX = 0, rotY = 0, idleTimer;
-let zoomEnergy = 1;
-const resetIdle = () => {
-    clearTimeout(idleTimer);
-    if (hub.className === 'idle') { hub.className = 'ready'; guide.innerHTML = "✨ Touch the seed to expand"; }
-    idleTimer = setTimeout(() => { if (hub.className === 'ready') { hub.className = 'idle'; guide.innerHTML = "🌱 Awaken the Seed"; } }, 10000);
-};
-const moveEngine = (e) => {
-    resetIdle();
-    let x = e.touches ? e.touches[0].clientX : e.clientX;
-    let y = e.touches ? e.touches[0].clientY : e.clientY;
-    if (hub.classList.contains('expanded') && !isDragging) {
-        let centerX = window.innerWidth / 2, centerY = window.innerHeight / 2;
-        rotY += ((x - centerX) * 0.05 - rotY) * 0.05;
-        rotX -= ((y - centerY) * 0.05 + rotX) * 0.05;
-    }
-    if (!isDragging) return;
-    if (!lastX) { lastX = x; lastY = y; return; }
-    let dx = x - lastX; let dy = y - lastY;
-    if (Math.abs(dx) > 2 || Math.abs(dy) > 2) hasDragged = true;
-    rotY += dx * 0.8; rotX -= dy * 0.8;
-    zoomEnergy = 1 + Math.abs(dx) / 500;
-    lastX = x; lastY = y;
-};
-function autoSpin() {
-    if (!isDragging) {
-        zoomEnergy += (1 - zoomEnergy) * 0.1;
-        if (!hub.classList.contains('expanded')) { rotY += 0.2; rotX += 0.1; }
-    }
-    scene.style.transform = `rotateX(${rotX}deg) rotateY(${rotY}deg) scale(${zoomEnergy})`;
-    requestAnimationFrame(autoSpin);
+function expandFromDot(dotEl){
+  // Clear any previous JSON expansion
+  clearExpansion();
+
+  const ox=parseFloat(dotEl.dataset.x);
+  const oy=parseFloat(dotEl.dataset.y);
+  const oz=parseFloat(dotEl.dataset.z);
+  const col=dotEl.dataset.col;
+
+  updateStatus("🌌 Mapping domain roots…");
+  tgt.x=-ox; tgt.y=-oy; tgt.z=ENV.mobile?0.35:0.55;
+
+  DOMAINS.forEach((d,i)=>spawnJNode(ox,oy,oz,{...d},1,i,DOMAINS.length));
 }
-window.addEventListener('mousemove', moveEngine);
-window.addEventListener('touchmove', moveEngine, { passive: false });
-window.addEventListener('mouseup', () => { setTimeout(() => isDragging = false, 50); lastX = null; });
-window.addEventListener('touchend', () => { setTimeout(() => isDragging = false, 50); lastX = null; });
-hub.addEventListener('mousedown', () => { isDragging = true; hasDragged = false; });
-hub.addEventListener('touchstart', () => { isDragging = true; hasDragged = false; }, { passive: true });
+
+function clearExpansion(){
+  jnodes.forEach(n=>n.remove());
+  jnodes.length=0;
+  svg.innerHTML='';
+}
 
 // ============================================================
-// 6. PENTAGON TRAY — new control layer
-//    Draggable (mouse/touch) + pinch/wheel resizable, same
-//    mechanics as the Khel.o build, restyled to this file's
-//    gold/black theme. The dice core is a "surprise" jump into
-//    a random layer — distinct from the galaxy's own center
-//    node, which still does collapse/expand as before.
+//  UNIVERSE BUILD / RESET
 // ============================================================
-const Pentagon = {
-    state: { scale: 1, isDragging: false, hasDragged: false, startX: 0, startY: 0, left: 0, top: 0, pinchDist: 0 },
+function resetUniverse(){
+  clearExpansion();
+  S_state=0;
+  cam={x:0,y:0,z:ENV.mobile?0.5:1,rx:0,ry:0};
+  tgt={x:0,y:0,z:ENV.mobile?0.5:1,rx:0,ry:0};
 
-    init: function() {
-        const el = document.getElementById('pentagon-wrap');
-        el.style.left = `calc(50% - 70px)`;
-        el.style.bottom = '40px';
+  // Remove seed node if present
+  const old=hub.querySelector('.seed-dot');
+  if(old) old.remove();
 
-        el.addEventListener('touchstart', (e) => {
-            if (e.touches.length === 2) { this.state.pinchDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY); }
-        }, { passive: true });
-        el.addEventListener('touchmove', (e) => {
-            if (e.touches.length === 2 && this.state.pinchDist > 0) {
-                e.preventDefault();
-                const d = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
-                this.state.scale = Math.max(0.5, Math.min(2.2, this.state.scale * (d / this.state.pinchDist)));
-                el.style.setProperty('--pentagon-scale', this.state.scale);
-                this.state.pinchDist = d;
-            }
-        }, { passive: false });
-        el.addEventListener('wheel', (e) => {
-            e.preventDefault();
-            this.state.scale = Math.max(0.5, Math.min(2.2, this.state.scale + (e.deltaY < 0 ? 0.05 : -0.05)));
-            el.style.setProperty('--pentagon-scale', this.state.scale);
-        }, { passive: false });
+  if(dots.length===0) buildDots();
+  else dots.forEach(d=>{d.style.opacity='1';d.style.transition='opacity .5s';});
 
-        const dragStart = (e) => {
-            if (e.target.closest('.pquad') || e.target.closest('.pcore') || e.touches?.length === 2) return;
-            this.state.hasDragged = false;
-            this.state.startX = e.type === 'touchstart' ? e.touches[0].clientX : e.clientX;
-            this.state.startY = e.type === 'touchstart' ? e.touches[0].clientY : e.clientY;
-            const rect = el.getBoundingClientRect();
-            this.state.left = rect.left; this.state.top = rect.top;
-            el.style.left = this.state.left + 'px'; el.style.top = this.state.top + 'px'; el.style.bottom = 'auto';
-            document.addEventListener('mousemove', dragMove, { passive: false });
-            document.addEventListener('touchmove', dragMove, { passive: false });
-            document.addEventListener('mouseup', dragEnd);
-            document.addEventListener('touchend', dragEnd);
-        };
-        const dragMove = (e) => {
-            if (e.touches?.length === 2) return;
-            const cx = e.type === 'touchmove' ? e.touches[0].clientX : e.clientX;
-            const cy = e.type === 'touchmove' ? e.touches[0].clientY : e.clientY;
-            if (Math.abs(cx - this.state.startX) > 6 || Math.abs(cy - this.state.startY) > 6) this.state.hasDragged = true;
-            if (this.state.hasDragged) {
-                e.preventDefault();
-                let nl = this.state.left + (cx - this.state.startX), nt = this.state.top + (cy - this.state.startY);
-                nl = Math.max(0, Math.min(nl, window.innerWidth - el.offsetWidth));
-                nt = Math.max(0, Math.min(nt, window.innerHeight - el.offsetHeight));
-                el.style.left = nl + 'px'; el.style.top = nt + 'px';
-            }
-        };
-        const dragEnd = () => {
-            document.removeEventListener('mousemove', dragMove); document.removeEventListener('touchmove', dragMove);
-            document.removeEventListener('mouseup', dragEnd); document.removeEventListener('touchend', dragEnd);
-            if (this.state.hasDragged) { el.setAttribute('data-dragged', 'true'); setTimeout(() => el.removeAttribute('data-dragged'), 100); }
-        };
-        el.addEventListener('mousedown', dragStart, { passive: false });
-        el.addEventListener('touchstart', dragStart, { passive: false });
+  // Golden seed
+  const seed=document.createElement('div');
+  seed.className='seed-dot';
+  seed.style.cssText='--x:0px;--y:0px;--z:0px;';
+  seed.onclick=e=>{
+    e.stopPropagation();
+    if(jnodes.length===0){
+      updateStatus("🌌 Awakening…");
+      tgt.z=ENV.mobile?0.35:0.5;
+      DOMAINS.forEach((d,i)=>spawnJNode(0,0,0,{...d},1,i,DOMAINS.length));
+    } else clearExpansion();
+  };
+  hub.prepend(seed);
 
-        this.loadConfig();
-        Ext.renderList();
-    },
+  updateStatus("✨ Touch the Golden Seed or any star");
+}
 
-    tap: function(el, action) {
-        if (document.getElementById('pentagon-wrap').getAttribute('data-dragged') === 'true') return;
-        haptic();
-        if (typeof this[action] === 'function') this[action]();
-    },
+function updateStatus(msg){ document.getElementById('status').innerText=msg; }
 
-    open: function(id) { document.getElementById(id).classList.add('active'); },
-    close: function(id) { document.getElementById(id).classList.remove('active'); },
-
-    rollDice: function() {
-        const core = document.getElementById('pcore');
-        core.classList.add('rolling');
-        const layers = Object.keys(SOURCES);
-        const pick = layers[Math.floor(Math.random() * layers.length)];
-        setTimeout(() => { core.classList.remove('rolling'); if (!hub.classList.contains('expanded')) toggleExpansion(); NEXT(pick); }, 400);
-    },
-
-    jumpContribution: function() { if (!hub.classList.contains('expanded')) toggleExpansion(); NEXT('contribution'); },
-    jumpRelevance:    function() { if (!hub.classList.contains('expanded')) toggleExpansion(); NEXT('relevance'); },
-
-    openSearch: function() { this.open('panel-search'); document.getElementById('search-input').focus(); },
-    openLibrary: function() {
-        const body = document.getElementById('library-body');
-        body.innerHTML = Object.keys(SOURCES).filter(k => k !== 'cosmos').map(key => {
-            const items = MOCK_DATA[key] || [];
-            return `<h3 style="color:${SOURCES[key].color}; font-weight:400; margin:18px 0 8px;">${SOURCES[key].icon} ${SOURCES[key].name}</h3>` +
-                items.map(t => `<div class="result-row" style="cursor:pointer;" onclick="NEXT('${key}'); Pentagon.close('panel-library'); if(!hub.classList.contains('expanded')) toggleExpansion();"><div><a>${t}</a><p>Tap to jump into the ${SOURCES[key].name} dimension</p></div></div>`).join('');
-        }).join('');
-        this.open('panel-library');
-    },
-    openSettings: function() { Ext.renderList(); this.open('panel-settings'); },
-
-    // ---------- search: kids.miraheze keyword search + event-site deep links ----------
-    runSearch: async function() {
-        const q = document.getElementById('search-input').value.trim();
-        const results = document.getElementById('search-results');
-        if (!q) return;
-        results.innerHTML = `<p style="color:#888; font-size:0.85rem;">Searching...</p>`;
-        let html = '';
-        try {
-            const res = await fetch(`https://kids.miraheze.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(q)}&format=json&origin=*`);
-            const data = await res.json();
-            const hits = (data.query?.search || []).slice(0, 6);
-            if (hits.length) {
-                html += `<h3 style="color:var(--gold); font-weight:400; margin-bottom:10px;">📚 Kids Wiki</h3>`;
-                html += hits.map(h => `<div class="result-row"><div><a href="https://kids.miraheze.org/wiki/${encodeURIComponent(h.title.replace(/ /g,'_'))}" target="_blank">${h.title}</a><p>${h.snippet.replace(/<[^>]*>?/gm,'')}</p></div></div>`).join('');
-            }
-        } catch (e) { html += `<p style="color:#888; font-size:0.8rem;">Wiki search unavailable right now.</p>`; }
-        // Event-site deep links — there's no single free API that searches every event platform at
-        // once, so this builds direct search URLs to a few real ones instead of pretending to merge them.
-        html += `<h3 style="color:var(--cyan); font-weight:400; margin:18px 0 10px;">📅 Event Sites</h3>`;
-        [
-            { name: 'Eventbrite', url: `https://www.eventbrite.com/d/online/${encodeURIComponent(q)}/` },
-            { name: 'Meetup', url: `https://www.meetup.com/find/?keywords=${encodeURIComponent(q)}` },
-            { name: 'AllEvents', url: `https://allevents.in/search?q=${encodeURIComponent(q)}` }
-        ].forEach(s => { html += `<div class="result-row"><div><a href="${s.url}" target="_blank">Search "${q}" on ${s.name}</a></div></div>`; });
-        results.innerHTML = html;
-    },
-
-    // ---------- config (saved to this browser only, never to the repo) ----------
-    saveConfig: function() {
-        const cfg = {
-            amazon: document.getElementById('cfg-amazon').value.trim(),
-            upi: document.getElementById('cfg-upi').value.trim(),
-            neo4jUri: document.getElementById('cfg-neo4j-uri').value.trim(),
-            aiKey: document.getElementById('cfg-ai-key').value.trim()
-        };
-        localStorage.setItem('khelo_pentagon_config', JSON.stringify(cfg));
-        this.renderUpiQr(cfg.upi);
-    },
-    loadConfig: function() {
-        try {
-            const cfg = JSON.parse(localStorage.getItem('khelo_pentagon_config') || '{}');
-            if (cfg.amazon) document.getElementById('cfg-amazon').value = cfg.amazon;
-            if (cfg.upi) { document.getElementById('cfg-upi').value = cfg.upi; this.renderUpiQr(cfg.upi); }
-            if (cfg.neo4jUri) document.getElementById('cfg-neo4j-uri').value = cfg.neo4jUri;
-            if (cfg.aiKey) document.getElementById('cfg-ai-key').value = cfg.aiKey;
-        } catch (e) {}
-    },
-    renderUpiQr: function(payeeId) {
-        const area = document.getElementById('upi-qr-area');
-        if (!payeeId) { area.innerHTML = ''; return; }
-        const upiUri = `upi://pay?pa=${encodeURIComponent(payeeId)}&pn=Khelo&cu=INR`;
-        // Uses a free public QR-rendering API rather than a from-scratch encoder — swap for a
-        // local QR library if fully offline support matters more than simplicity here.
-        const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(upiUri)}`;
-        area.innerHTML = `<p style="font-size:0.8rem; color:#999; margin-bottom:8px;">UPI QR (scan with any UPI app):</p><img src="${qrUrl}" style="border-radius:12px; border:1px solid rgba(212,175,55,0.25);">`;
-    },
-
-    // ---------- voice ----------
-    toggleVoice: function() { Voice.enabled ? Voice.stop() : Voice.start(); }
+// ============================================================
+//  POINTER / TOUCH EVENTS
+// ============================================================
+window.onpointerdown=e=>{
+  if(e.target.closest('#toolbar,#search-overlay,#detail')) return;
+  const now=Date.now();
+  if(now-lastTap<320){ resetUniverse(); lastTap=0; return; }
+  lastTap=now;
+  drag=true; lx=e.clientX; ly=e.clientY; startX=lx; startY=ly;
 };
-
-// ============================================================
-// 7. VOICE — real Web Speech API, off by default
-//    Speaks node titles aloud when readAloud is on, and listens
-//    for a layer name to jump straight there hands-free. This is
-//    the honest, working version of "the ear" — built on the
-//    browser's own accessibility APIs, not a custom invention.
-// ============================================================
-const Voice = {
-    recognition: null, enabled: false, readAloud: false,
-    init: function() {
-        const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (!SR) return false;
-        this.recognition = new SR();
-        this.recognition.continuous = true;
-        this.recognition.interimResults = false;
-        this.recognition.lang = 'en-IN';
-        this.recognition.onresult = (e) => {
-            const said = e.results[e.results.length - 1][0].transcript.toLowerCase();
-            const match = Object.keys(SOURCES).find(k => said.includes(k));
-            if (match) { this.speak(`Opening ${SOURCES[match].name}`); if (!hub.classList.contains('expanded')) toggleExpansion(); NEXT(match); }
-        };
-        this.recognition.onerror = () => { this.stop(); };
-        this.recognition.onend = () => { if (this.enabled) this.recognition.start(); };
-        return true;
-    },
-    start: function() {
-        if (!this.recognition && !this.init()) { guide.innerHTML = '⚠️ Voice not supported in this browser'; return; }
-        try { this.recognition.start(); } catch (e) {}
-        this.enabled = true; this.readAloud = true;
-        document.getElementById('voice-indicator').classList.add('live');
-        this.speak('Voice mode on. Say a category like ecology, books, or events.');
-    },
-    stop: function() {
-        if (this.recognition) try { this.recognition.stop(); } catch (e) {}
-        this.enabled = false; this.readAloud = false;
-        document.getElementById('voice-indicator').classList.remove('live');
-    },
-    speak: function(text) {
-        if (!window.speechSynthesis) return;
-        speechSynthesis.cancel();
-        speechSynthesis.speak(new SpeechSynthesisUtterance(text));
-    }
+window.onpointermove=e=>{
+  if(!drag)return;
+  const dx=e.clientX-lx, dy=e.clientY-ly;
+  const moved=Math.abs(e.clientX-startX)>6||Math.abs(e.clientY-startY)>6;
+  if(moved){
+    if(e.shiftKey||e.buttons===2){ tgt.ry+=dx*.3; tgt.rx-=dy*.3; }
+    else{ tgt.x+=dx/cam.z; tgt.y+=dy/cam.z; }
+  }
+  lx=e.clientX; ly=e.clientY;
 };
-
-// ============================================================
-// 8. EXTENSION REGISTRY — same toggle pattern as the Khel.o build,
-//    so a new feature anywhere in this project follows one rule.
-// ============================================================
-// ----------------------------------------------------------
-// Small shared helper so any tap across the app — dots, gateway
-// nodes, the dice, the Pentagon Tray — can give the same gentle
-// vibration on devices that support it. Gated by the extension
-// toggle below, same pattern as everything else in this file.
-// ----------------------------------------------------------
-function haptic(ms = 10) { if (Ext.list.haptics?.on && navigator.vibrate) navigator.vibrate(ms); }
-
-const Ext = {
-    list: {
-        voice:   { name: 'Voice Triggers', desc: 'Speak a category name to jump there; node titles read aloud.', on: false },
-        wiki:    { name: 'Wiki Keyword Search', desc: 'Search kids.miraheze.org from the Search panel.', on: true },
-        upi:     { name: 'UPI Support Tile', desc: 'Show a UPI QR code in Settings once a payee ID is set.', on: false },
-        neo4j:   { name: 'Neo4j Sync', desc: 'Off by default — needs a backend, not a hardcoded credential in this public file.', on: false },
-        ai:      { name: 'AI Synthesis', desc: 'Off by default — same reasoning as Neo4j: no key belongs in this file.', on: false },
-        haptics: { name: 'Haptic Feedback', desc: 'A short vibration on tap, on devices that support it (mobile).', on: true }
-    },
-    toggle: function(id) { this.list[id].on = !this.list[id].on; this.renderList(); if (id === 'voice' && !this.list.voice.on) Voice.stop(); },
-    renderList: function() {
-        const el = document.getElementById('ext-list');
-        el.innerHTML = Object.entries(this.list).map(([id, e]) => `
-            <div class="ext-row">
-                <div><div class="nm">${e.name}</div><div class="ds">${e.desc}</div></div>
-                <label class="pswitch"><input type="checkbox" ${e.on ? 'checked' : ''} onchange="Ext.toggle('${id}')"><span class="pslider"></span></label>
-            </div>`).join('');
-    }
+window.onpointerup=e=>{
+  drag=false;
+  if(e.target.closest('#toolbar,#search-overlay,#detail')) return;
+  const moved=Math.abs(e.clientX-startX)>6||Math.abs(e.clientY-startY)>6;
+  if(!moved){
+    const dot=e.target.closest('.dot');
+    if(dot){ expandFromDot(dot); }
+  }
 };
+window.oncontextmenu=e=>e.preventDefault();
+window.onwheel=e=>{ tgt.z=Math.max(0.08,Math.min(5,tgt.z-e.deltaY*.0015)); };
+window.addEventListener('touchstart',e=>{
+  if(e.touches.length===2){ drag=false; pinchDist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY); }
+},{passive:true});
+window.addEventListener('touchmove',e=>{
+  if(e.touches.length===2){
+    const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
+    tgt.z=Math.max(0.08,Math.min(5,tgt.z+(d-pinchDist)*0.004));
+    pinchDist=d;
+  }
+},{passive:true});
+window.addEventListener('resize',()=>{ if(S_state===0) tgt.z=ENV.mobile?0.5:1; });
 
 // ============================================================
-// 9. WHAT'S DELIBERATELY NOT HERE
-//    Multiplayer needs a realtime backend (a WebSocket relay or
-//    a service like Supabase Realtime/PartyKit) to sync state
-//    between devices — that's not something a static file can
-//    do on its own, so it isn't faked here. Same logic for any
-//    "auto-search every event site" claim: there's no single
-//    free API that covers all of them, hence the deep-link list
-//    above instead of a pretend unified search.
+//  RENDER LOOP — lerp camera every frame
 // ============================================================
+function lerp(a,b,t){return a+(b-a)*t;}
+function renderLoop(){
+  const f=0.065; // smoothing factor — feels like floating in zero gravity
+  cam.x=lerp(cam.x,tgt.x,f); cam.y=lerp(cam.y,tgt.y,f);
+  cam.z=lerp(cam.z,tgt.z,f); cam.rx=lerp(cam.rx,tgt.rx,f); cam.ry=lerp(cam.ry,tgt.ry,f);
 
-document.addEventListener('DOMContentLoaded', () => { Pentagon.init(); });
+  hub.style.transform=`translate(-50%,-50%) scale(${cam.z}) translate3d(${cam.x}px,${cam.y}px,0) rotateX(${cam.rx}deg) rotateY(${cam.ry}deg)`;
 
-// Ignite — start expanded so the Fibonacci galaxy is the first thing visible,
-// then open the dice hub straight away so the user has a clear starting point.
-NEXT('cosmos');
-autoSpin();
-resetIdle();
-setTimeout(() => {
-    hub.className = 'expanded';
-    guide.innerHTML = `🌌 Exploring ${SOURCES[currentLayer].name} Dimension`;
-    dots.forEach(el => { el.setAttribute("cx", el.tx); el.setAttribute("cy", el.ty); });
-    nodes.forEach(el => { el.style.transform = `translate(${el.tx}px, ${el.ty}px) scale(1)`; });
-    setTimeout(openDiceHub, 1200);
-}, 1100);
+  document.getElementById('coord-display').innerText=
+    `Z:${cam.z.toFixed(3)} X:${Math.floor(cam.x)} Y:${Math.floor(cam.y)}`;
+
+  // Auto-drift — disabled on low-power
+  if(ENV.autoSpin && !drag && jnodes.length>0) tgt.ry+=0.018;
+
+  requestAnimationFrame(renderLoop);
+}
+
+// ============================================================
+//  SURPRISE DICE
+// ============================================================
+function rollSurprise(){
+  clearExpansion();
+  const d=DOMAINS[Math.floor(Math.random()*DOMAINS.length)];
+  const randomDot=dots[Math.floor(Math.random()*dots.length)];
+  if(!randomDot) return;
+  expandFromDot(randomDot);
+  updateStatus(`🎲 Exploring ${d.icon} ${d.name}`);
+}
+
+// ============================================================
+//  SEARCH
+// ============================================================
+function openSearch(){
+  document.getElementById('search-overlay').classList.add('active');
+  setTimeout(()=>document.getElementById('search-input').focus(),200);
+  runSearch('');
+}
+function closeSearch(){
+  document.getElementById('search-overlay').classList.remove('active');
+  document.getElementById('search-input').value='';
+}
+function runSearch(q){
+  const results=q.length>0?searchKB(q):KB.slice(0,8);
+  const c=document.getElementById('search-results');
+  if(!results.length){
+    c.innerHTML=`<div style="text-align:center;padding:40px;font-size:clamp(32px,10vw,48px);">🌱<br><span style="font-size:clamp(13px,3.5vw,16px);color:#475569;">No results — try another word</span></div>`;
+    return;
+  }
+  c.innerHTML=results.map((item,i)=>`
+    <div class="s-card" style="animation-delay:${i*45}ms" onclick='openKB(${JSON.stringify(JSON.stringify(item))})'>
+      <div class="s-em">${item.icon}</div>
+      <div class="s-body">
+        <h3>${item.title}</h3>
+        <p>${item.desc}</p>
+        <div class="s-tags">${item.tags.slice(0,4).map(t=>`<span class="s-tag">${t}</span>`).join('')}</div>
+      </div>
+    </div>`).join('');
+}
+function openKB(json){
+  const item=JSON.parse(json);
+  closeSearch();
+  // Find matching domain and zoom there
+  const dom=DOMAINS.find(d=>d.name.toLowerCase().includes(item.catKey.toLowerCase()));
+  if(dom){
+    clearExpansion();
+    const rdot=dots[Math.floor(Math.random()*dots.length)];
+    if(rdot) expandFromDot(rdot);
+  }
+  setTimeout(()=>showDetail(item),600);
+}
+function showDetail(item){
+  document.getElementById('d-icon').innerText=item.icon;
+  document.getElementById('d-title').innerText=item.title;
+  document.getElementById('d-desc').innerText=item.desc;
+  document.getElementById('d-links').innerHTML=item.links.map(l=>`<a class="d-link" href="${l.url}" target="_blank">🔗 ${l.label}</a>`).join('');
+  document.getElementById('detail').classList.add('open');
+}
+function closeDetail(){ document.getElementById('detail').classList.remove('open'); }
+
+// ============================================================
+//  VOICE (the Ear)
+// ============================================================
+function toggleVoice(){
+  const ic=document.getElementById('v-icon');
+  if(voiceEnabled){
+    try{voiceRecog.stop();}catch(e){}
+    voiceEnabled=false; ic.innerText='👂'; return;
+  }
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){ updateStatus("⚠️ Voice not available in this browser"); return; }
+  voiceRecog=new SR();
+  voiceRecog.lang='en-IN'; voiceRecog.continuous=true; voiceRecog.interimResults=false;
+  voiceRecog.onresult=e=>{
+    const said=e.results[e.results.length-1][0].transcript.toLowerCase();
+    updateStatus(`🎙️ "${said}"`);
+    const hits=searchKB(said);
+    if(hits.length){ document.getElementById('search-input').value=said; openSearch(); runSearch(said); }
+  };
+  voiceRecog.onerror=()=>{voiceEnabled=false;ic.innerText='👂';};
+  voiceRecog.onend=()=>{if(voiceEnabled)voiceRecog.start();};
+  voiceRecog.start();
+  voiceEnabled=true; ic.innerText='🔴';
+  updateStatus("🎙️ Listening… say a word");
+}
+
+// ── IGNITION ──
+buildDots();
+resetUniverse();
+renderLoop();
 </script>
 </body>
 </html>
