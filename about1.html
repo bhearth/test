@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=5,user-scalable=yes">
+<meta name="theme-color" content="#010204">
+<title>Khel.o · EVOD · Earth Evolutionary Knowledge</title>
+<link rel="manifest" href='data:application/manifest+json,{"name":"Khel.o EVOD","short_name":"EVOD","start_url":".","display":"standalone","background_color":"#010204","theme_color":"#010204","icons":[{"src":"data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Ccircle cx=%2250%22 cy=%2250%22 r=%2220%22 fill=%22%23d4af37%22/%3E%3C/svg%3E","sizes":"192x192","type":"image/svg+xml"}]}'>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
+<link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Rounded" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;500;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#010204;font-family:'Inter',system-ui;overflow:hidden;touch-action:none;user-select:none;color:#e2e8f0}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 20% 30%,rgba(16,185,129,.05) 0%,transparent 50%),radial-gradient(ellipse at 80% 70%,rgba(251,191,36,.04) 0%,transparent 50%),radial-gradient(ellipse at 50% 50%,rgba(56,189,248,.03) 0%,transparent 70%);pointer-events:none;z-index:0}
+
+/* ═══ 3D ENGINE ═══ */
+#hub{position:absolute;top:50%;left:50%;transform-style:preserve-3d;will-change:transform}
+.d{position:absolute;border-radius:50%;cursor:pointer;transform:translate3d(calc(-50% + var(--x)),calc(-50% + var(--y)),var(--z));animation:bloom .8s cubic-bezier(.34,1.56,.64,1) forwards;transition:transform .4s,box-shadow .3s}
+.d:hover{transform:translate3d(calc(-50% + var(--x)),calc(-50% + var(--y)),calc(var(--z)+40px)) scale(1.8)!important;z-index:100}
+.seed{width:80px;height:80px;transform:translate(-50%,-50%);cursor:pointer;border-radius:50%}
+.seed::after{content:'';position:absolute;inset:30px;background:#d4af37;border-radius:50%;box-shadow:0 0 40px 16px rgba(212,175,55,.7);animation:breath 3s infinite ease-in-out}
+@keyframes bloom{to{transform:translate3d(calc(-50% + var(--x)),calc(-50% + var(--y)),var(--z)) scale(1)}}
+@keyframes breath{0%,100%{transform:scale(1);opacity:.8}50%{transform:scale(1.4);opacity:1}}
+svg.lines{position:absolute;top:-10000px;left:-10000px;width:20000px;height:20000px;pointer-events:none}
+.line{fill:none;stroke-width:1.5;stroke-dasharray:2000;stroke-dashoffset:2000;animation:draw 1.4s ease forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+.node{position:absolute;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:50%;cursor:pointer;background:rgba(10,15,25,.7);border:1.5px solid;backdrop-filter:blur(10px);transform:translate3d(calc(-50% + var(--x)),calc(-50% + var(--y)),var(--z)) scale(0);animation:bloom .9s cubic-bezier(.34,1.56,.64,1) forwards}
+.node:active{background:currentColor;color:#000!important;box-shadow:0 0 30px currentColor;z-index:500}
+.card{position:absolute;width:180px;padding:14px;border-radius:16px;background:rgba(10,15,25,.9);border:1px solid rgba(255,255,255,.1);backdrop-filter:blur(20px);cursor:pointer;transform:translate3d(calc(-50% + var(--x)),calc(-50% + var(--y)),var(--z)) scale(0);animation:bloom 1s cubic-bezier(.34,1.56,.64,1) forwards}
+.card:active{transform:translate3d(calc(-50% + var(--x)),calc(-50% + var(--y)),calc(var(--z)+30px)) scale(1.08)!important;border-color:currentColor}
+
+/* ═══ ABOUT PAGE ═══ */
+#about{position:fixed;inset:0;background:#010204;z-index:200;overflow-y:auto;display:none;padding:20px}
+#about.show{display:block}
+#about::-webkit-scrollbar{width:6px}
+#about::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:3px}
+
+/* ═══ CUSTOM SHORTHAND TAG STYLES ═══ */
+/* <d> = display paragraph */
+d{display:block;color:#cbd5e1;line-height:1.8;font-size:15px;margin-bottom:14px}
+d.sm{font-size:13px;color:#94a3b8}
+d.lg{font-size:17px;color:#e2e8f0}
+d.center{text-align:center}
+d.gold strong{color:#fbbf24}
+d.eco strong{color:#10b981}
+d.sky strong{color:#38bdf8}
+
+/* <e> = emphasized heading */
+e{display:block;font-family:'Space Grotesk',sans-serif;font-weight:700;margin-bottom:12px;line-height:1.2}
+e.h1{font-size:clamp(32px,7vw,56px);background:linear-gradient(135deg,#10b981,#fbbf24,#38bdf8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+e.h2{font-size:clamp(22px,4vw,30px);color:#fbbf24}
+e.h3{font-size:clamp(18px,3.5vw,22px);color:#10b981}
+e.h4{font-size:16px;color:#38bdf8}
+
+/* <f> = flow item (in diagrams) */
+f{display:inline-flex;flex-direction:column;align-items:center;gap:4px;padding:12px 18px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;font-size:13px;font-weight:600;color:#e2e8f0;text-align:center;min-width:100px}
+f.gold{border-color:rgba(251,191,36,.4);color:#fbbf24}
+f.eco{border-color:rgba(16,185,129,.4);color:#10b981}
+f.sky{border-color:rgba(56,189,248,.4);color:#38bdf8}
+f.rose{border-color:rgba(244,63,94,.4);color:#f43f5e}
+
+/* <g> = grid container */
+g{display:grid;gap:16px;margin:20px 0}
+g.c2{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+g.c3{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+g.c4{grid-template-columns:repeat(auto-fit,minmax(140px,1fr))}
+g.flow{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:10px;padding:20px;background:rgba(0,0,0,.2);border-radius:16px;border:1px solid rgba(255,255,255,.08)}
+
+/* <j> = link card */
+j{display:flex;flex-direction:column;gap:10px;padding:20px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:16px;text-decoration:none;color:#e2e8f0;transition:all .3s;cursor:pointer}
+j:hover{transform:translateY(-4px);border-color:#10b981;box-shadow:0 20px 60px rgba(16,185,129,.15)}
+j .ji{font-size:28px}
+j .jt{font-family:'Space Grotesk';font-size:16px;font-weight:700;color:#10b981}
+j .jd{font-size:13px;color:#94a3b8;line-height:1.5}
+
+/* <b> = block/panel */
+b{display:block;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:clamp(20px,4vw,32px);margin-bottom:20px;position:relative;overflow:hidden}
+b::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#fbbf24,transparent)}
+b.eco::before{background:linear-gradient(90deg,transparent,#10b981,transparent)}
+b.sky::before{background:linear-gradient(90deg,transparent,#38bdf8,transparent)}
+b.rose::before{background:linear-gradient(90deg,transparent,#f43f5e,transparent)}
+
+/* <a> = arrow in flows */
+a.arr{display:inline-flex;align-items:center;justify-content:center;font-size:20px;color:#475569;font-weight:700;padding:0 4px}
+
+/* <q> = quote */
+q{display:block;border-left:3px solid #fbbf24;padding:16px 24px;margin:20px 0;background:rgba(251,191,36,.05);border-radius:0 12px 12px 0;font-style:italic;color:#e2e8f0;font-size:16px;line-height:1.6}
+
+/* <t> = tag/chip */
+t{display:inline-block;padding:4px 10px;background:rgba(56,189,248,.12);color:#38bdf8;border-radius:20px;font-size:11px;font-weight:700;margin:2px}
+
+/* <i> = icon badge */
+i.ic{display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:12px;background:rgba(255,255,255,.05);font-size:20px;margin-right:10px}
+
+/* <x> = code/structure block */
+x{display:block;background:#0a0f1a;border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:16px;font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.7;color:#94a3b8;overflow-x:auto;margin:12px 0;white-space:pre}
+</style>
+</head>
+<body>
+
+<!-- ═══ HUD ═══ -->
+<div class="fixed top-0 left-0 right-0 flex justify-between items-start p-4 pointer-events-none z-50 bg-gradient-to-b from-black/80 to-transparent">
+  <div>
+    <div class="text-xs tracking-[3px] uppercase text-sky-400 font-medium" id="status">✨ Touch the Golden Seed</div>
+    <div class="text-[10px] text-slate-500 font-mono mt-1" id="depth">DEPTH: 0 · NODES: 0</div>
+  </div>
+  <button onclick="toggleAbout()" class="pointer-events-auto text-[10px] tracking-[2px] uppercase text-sky-400 font-bold bg-white/5 border border-white/10 rounded-lg px-3 py-2 backdrop-blur hover:border-sky-400">ⓘ EVOD</button>
+</div>
+
+<!-- ═══ 3D VIEWPORT ═══ -->
+<div id="viewport" class="fixed inset-0" style="perspective:2000px">
+  <div id="hub"><svg class="lines" id="lines"></svg></div>
+</div>
+
+<!-- ═══ TOOLBAR ═══ -->
+<div class="fixed bottom-0 left-0 right-0 flex justify-around items-center p-3 pb-6 bg-gradient-to-t from-black/95 to-transparent z-50 gap-2">
+  <button onclick="reset()" class="flex flex-col items-center gap-1 bg-white/5 border border-white/10 rounded-2xl px-4 py-2 active:scale-90 transition">
+    <span class="material-symbols-rounded text-2xl">park</span>
+    <span class="text-[9px] uppercase tracking-wider font-bold text-slate-400">Seed</span>
+  </button>
+  <button onclick="back()" class="flex flex-col items-center gap-1 bg-white/5 border border-white/10 rounded-2xl px-4 py-2 active:scale-90 transition">
+    <span class="material-symbols-rounded text-2xl">arrow_back</span>
+    <span class="text-[9px] uppercase tracking-wider font-bold text-slate-400">Back</span>
+  </button>
+  <button onclick="surprise()" class="flex flex-col items-center gap-1 bg-white/5 border border-white/10 rounded-2xl px-4 py-2 active:scale-90 transition">
+    <span class="material-symbols-rounded text-2xl">casino</span>
+    <span class="text-[9px] uppercase tracking-wider font-bold text-slate-400">Dice</span>
+  </button>
+  <button onclick="toggleAbout()" class="flex flex-col items-center gap-1 bg-white/5 border border-white/10 rounded-2xl px-4 py-2 active:scale-90 transition">
+    <span class="material-symbols-rounded text-2xl">info</span>
+    <span class="text-[9px] uppercase tracking-wider font-bold text-slate-400">EVOD</span>
+  </button>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     ABOUT PAGE · EVOD · THE COMPLETE VISION
+     Using shorthand tags: <d> <e> <f> <g> <b> <j> <q> <t> <x>
+     ═══════════════════════════════════════════════════════════ -->
+<div id="about">
+  <button onclick="toggleAbout()" class="fixed top-4 right-4 w-12 h-12 rounded-full bg-white/5 border border-white/10 text-2xl text-slate-400 flex items-center justify-center z-10 hover:bg-white/10">×</button>
+  
+  <div class="max-w-3xl mx-auto pt-8 pb-24 relative z-10">
+    
+    <!-- HERO -->
+    <div class="text-center mb-12">
+      <div class="inline-block px-4 py-1 bg-emerald-500/10 border border-emerald-500/30 rounded-full text-[10px] tracking-[3px] uppercase text-emerald-400 font-bold mb-4">EVOD · Earth Evolutionary Knowledge</div>
+      <e class="h1">The Flower of<br>Possibilities</e>
+      <d class="lg center" style="max-width:700px;margin:0 auto">A living map where every dot is a unique perspective — an individual, a culture, a language, a discovery, a possibility. Touch any dot. Three words bloom. The universe expands.</d>
+    </div>
+
+    <!-- PARADIGM SHIFT -->
+    <e class="h2">🌐 The Paradigm Shift</e>
+    <d class="gold">We are not building another website. We are proposing a <strong>new layer of the internet</strong> — a protocol of trust, evolution, and human development. Call it <strong>EVOD</strong> (Earth Evolutionary Operating Design).</d>
+    
+    <g class="c2">
+      <b class="rose">
+        <e class="h4" style="color:#f87171">✕ Old Web (WWW)</e>
+        <d class="sm">• Static pages, isolated information</d>
+        <d class="sm">• Search → click → read → leave</d>
+        <d class="sm">• Knowledge dies in archives</d>
+        <d class="sm">• Centralized servers, ads, noise</d>
+        <d class="sm">• AI generates answers for you</d>
+        <d class="sm">• Millions of irrelevant sites</d>
+      </b>
+      <b class="eco">
+        <e class="h4">✓ EVOD (Earth Network)</e>
+        <d class="sm">• <strong>Living knowledge nodes</strong> that evolve</d>
+        <d class="sm">• Touch → bloom → connect → grow</d>
+        <d class="sm">• Knowledge grows with community</d>
+        <d class="sm">• Offline mesh + global sync</d>
+        <d class="sm">• Humans evolve knowledge together</d>
+        <d class="sm">• Only verified, ad-free, human-centered sites</d>
+      </b>
+    </g>
+
+    <!-- THOUGHT SCIENTIST -->
+    <e class="h2">🌱 The Thought Scientist</e>
+    <b>
+      <d class="lg">A human being is not only a biological body. A human is a <strong style="color:#fbbf24">continuously evolving system</strong>:</d>
+      <g class="flow">
+        <f>Thoughts</f><a class="arr">↓</a>
+        <f>Emotions</f><a class="arr">↓</a>
+        <f>Intentions</f><a class="arr">↓</a>
+        <f>Actions</f><a class="arr">↓</a>
+        <f>Habits</f><a class="arr">↓</a>
+        <f>Character</f><a class="arr">↓</a>
+        <f class="gold">Reality</f>
+      </g>
+      <d class="gold">The Thought Scientist studies: <strong>Why do humans think? Why do they desire? Why do they suffer? Why do they repeat patterns? How can they transform?</strong> The greatest laboratory is the human mind itself.</d>
+      <d>The body is a continuous chemical process. Everything we consume — food, knowledge, emotions, relationships — transforms into energy, behaviour, and expression. All chemistry interacts with the physical laws set in motion.</d>
+      <d class="sky">We are <strong>hallucinatory beings</strong>. When a group shares a belief, it becomes shared reality. This is <strong>cosmic entanglement</strong> — and it happens at different levels. This is what quantum computing, physics, and chemistry are all about.</d>
+      <d class="eco">There are infinite paths of liberation. The entire existence is an illusion — like AR, VR, or a movie. <strong>Mukti is not escape from life. Mukti is freedom while participating fully in life.</strong></d>
+    </b>
+
+    <!-- 4D FORMULA -->
+    <e class="h2">🕉️ The 4D Formula for a 3D World</e>
+    <b class="sky">
+      <d>Language intersection reveals deeper truth. Consider: <strong style="color:#fbbf24">e/arth</strong> (English) + <strong style="color:#fbbf24">अर्थ (Arth)</strong> (Hindi: meaning, value, purpose). This connection reveals the ancient framework of human life:</d>
+      <g class="c4">
+        <f class="gold"><div style="font-size:24px">🙏</div><div>Dharma</div><div style="font-size:10px;color:#64748b">Responsibility</div></f>
+        <f class="eco"><div style="font-size:24px">💰</div><div>Artha</div><div style="font-size:10px;color:#64748b">Resources</div></f>
+        <f class="rose"><div style="font-size:24px">❤️</div><div>Kama</div><div style="font-size:10px;color:#64748b">Desire</div></f>
+        <f class="sky"><div style="font-size:24px">🕊️</div><div>Moksha</div><div style="font-size:10px;color:#64748b">Liberation</div></f>
+      </g>
+      <d>This is not philosophy. This is <strong style="color:#fbbf24">4D clarity in a 3D world</strong> — a framework for conscious living. The e/arth Engine explores where human intelligence, collective knowledge, artificial intelligence, and ecological wisdom converge.</d>
+    </b>
+
+    <!-- ECONOLOGY -->
+    <e class="h2">🌿 Econology — The Forgotten Foundation</e>
+    <b class="eco">
+      <d>Human civilization developed through economics, technology, trade, and systems. But humanity often forgets the foundation: <strong style="color:#10b981">Ecology</strong>. The planet, plants, water, soil, species, and ecosystems are the ground that supports all human activity.</d>
+      <d class="eco"><strong>Econology</strong> (a portmanteau of Economics + Ecology) reconnects: <strong>Human progress × Planet health × Resource wisdom</strong>.</d>
+      <d class="sm">Explore the concept: <a href="https://kids.miraheze.org/wiki/Econology" target="_blank" style="color:#10b981;text-decoration:underline">kids.miraheze.org/wiki/Econology ↗</a></d>
+      <d class="sm">We have applied for a SHEER ID to test how this new model of Econology will be understood by the world. All lies in how we present a new concept to planet Earth and its species — of which humans are just one.</d>
+    </b>
+
+    <!-- THE FLOWER -->
+    <e class="h2">🌸 The Knowledge Flower</e>
+    <b>
+      <d>The golden flower contains infinite dots. Each dot represents:</d>
+      <g class="flow">
+        <t>👤 a person</t><t>💭 a thought</t><t>🌍 a culture</t>
+        <t>🗣️ a language</t><t>🔬 a discovery</t><t>💡 a solution</t>
+        <t>✨ a possibility</t><t>🏛️ an organization</t><t>🎨 a field of art</t>
+        <t>🎵 music</t><t>⚖️ governance</t><t>🤝 an NGO</t>
+      </g>
+      <d>Clicking a dot reveals <strong style="color:#fbbf24">3 connected words</strong>. Those 3 words become the next pathway. The user is not browsing information — the user is exploring a <strong>living map of meaning</strong>.</d>
+      <d>The system grows like: <strong>Seed → Petal → Flower → Garden → Ecosystem</strong>.</d>
+    </b>
+
+    <!-- 5W1H ENGINE -->
+    <e class="h2">🎯 The 5W1H Liberation Engine</e>
+    <b class="sky">
+      <d>Every dot in the flower can ask:</d>
+      <g class="c3">
+        <f><div style="font-size:20px">❓</div><div>WHAT?</div><div style="font-size:10px;color:#64748b">What is happening?</div></f>
+        <f><div style="font-size:20px">🤔</div><div>WHY?</div><div style="font-size:10px;color:#64748b">Why does this matter?</div></f>
+        <f><div style="font-size:20px">👥</div><div>WHO?</div><div style="font-size:10px;color:#64748b">Who is involved?</div></f>
+        <f><div style="font-size:20px">📍</div><div>WHERE?</div><div style="font-size:10px;color:#64748b">Where does it belong?</div></f>
+        <f><div style="font-size:20px">⏰</div><div>WHEN?</div><div style="font-size:10px;color:#64748b">When is the time?</div></f>
+        <f class="gold"><div style="font-size:20px">🛠️</div><div>HOW?</div><div style="font-size:10px;color:#64748b">How can it improve?</div></f>
+      </g>
+      <d>The answers create the next pathway. This is the engine of human development.</d>
+    </b>
+
+    <!-- TRANSFORMATION WORDS -->
+    <e class="h2">💝 The Human Relationship Language</e>
+    <b>
+      <d>Certain words carry deep human transformation energy. They are not only words — they are <strong style="color:#fbbf24">behavioural technologies</strong>:</d>
+      <g class="c3">
+        <f class="gold"><div style="font-size:20px">🙏</div><div>Thank You</div><div style="font-size:10px;color:#64748b">Recognition</div></f>
+        <f class="rose"><div style="font-size:20px">💔</div><div>Sorry</div><div style="font-size:10px;color:#64748b">Awareness</div></f>
+        <f class="rose"><div style="font-size:20px">❤️</div><div>Love</div><div style="font-size:10px;color:#64748b">Connection</div></f>
+        <f class="eco"><div style="font-size:20px">🤲</div><div>Care</div><div style="font-size:10px;color:#64748b">Protection</div></f>
+        <f class="sky"><div style="font-size:20px">🕊️</div><div>Forgive</div><div style="font-size:10px;color:#64748b">Liberation</div></f>
+        <f class="eco"><div style="font-size:20px">💚</div><div>Compassion</div><div style="font-size:10px;color:#64748b">Understanding</div></f>
+      </g>
+    </b>
+
+    <!-- EMOTIONAL FORMULAS -->
+    <e class="h2">⚡ Emotional Intelligence Formulas</e>
+    <g class="c2">
+      <b class="rose">
+        <e class="h4" style="color:#f43f5e">Conflict Formula</e>
+        <g class="flow">
+          <f>Reaction</f><a class="arr">→</a>
+          <f>Pause</f><a class="arr">→</a>
+          <f>Understand</f><a class="arr">→</a>
+          <f class="gold">Respond</f>
+        </g>
+      </b>
+      <b class="eco">
+        <e class="h4">Growth Formula</e>
+        <d class="center" style="font-size:14px"><strong style="color:#10b981">Curiosity × Learning × Practice = Capability</strong></d>
+      </b>
+      <b class="sky">
+        <e class="h4">Relationship Formula</e>
+        <d class="center" style="font-size:14px"><strong style="color:#38bdf8">Trust × Communication × Care = Connection</strong></d>
+      </b>
+      <b>
+        <e class="h4">Creativity Formula</e>
+        <d class="center" style="font-size:14px"><strong style="color:#fbbf24">Observation × Imagination × Experimentation = Innovation</strong></d>
+      </b>
+    </g>
+
+    <!-- THE EVOLUTION ENGINE -->
+    <e class="h2">🚀 The Evolution Engine</e>
+    <b class="sky">
+      <d>As users explore deeper layers, the system connects them with meaningful resources — <strong>not random links, but curated pathways for human development</strong>:</d>
+      <g class="flow">
+        <t>📚 Books</t><t>📦 Products</t><t>📺 YouTube</t>
+        <t>📰 News</t><t>🎓 Knowledge</t><t>🎟️ Events</t>
+        <t>👥 People</t><t>🤝 Community</t><t>⚽ Sports</t>
+        <t>🎭 Cultures</t><t>🛠️ Skill Dev</t><t>🌱 Ecology</t>
+        <t>🧘 Detoxify</t><t>🌿 Plants</t><t>🦋 Species</t>
+        <t>🏛️ Institutions</t><t>🎨 Art</t><t>🔬 Research</t>
+      </g>
+      <d>The goal: <strong style="color:#fbbf24">Create meaningful connections that improve human life</strong>. This is not just a knowledge graph — it is a <strong>human development navigation engine</strong>.</d>
+    </b>
+
+    <!-- EVOD NETWORK: REAL EXAMPLES -->
+    <e class="h2">🌐 The EVOD Network — Real Sites, Real Standards</e>
+    <b class="eco">
+      <d>The EVOD network is not theoretical. It connects to <strong style="color:#10b981">real, verified, ad-free, human-centered sites</strong> across the planet. These are the standards-bearers of knowledge:</d>
+      
+      <e class="h4">📖 Knowledge & Reference</e>
+      <g class="c2">
+        <j href="https://kids.miraheze.org" target="_blank"><div class="ji">📚</div><div class="jt">Kids Miraheze</div><div class="jd">Kid-friendly wiki. Safe learning for young minds. The seed of EVOD.</div></j>
+        <j href="https://en.wikipedia.org" target="_blank"><div class="ji">📖</div><div class="jt">Wikipedia</div><div class="jd">The free encyclopedia. Millions of articles in 300+ languages.</div></j>
+        <j href="https://www.wikidata.org" target="_blank"><div class="ji">🗃️</div><div class="jt">Wikidata</div><div class="jd">Free structured knowledge base. The brain behind Wikipedia.</div></j>
+        <j href="https://archive.org" target="_blank"><div class="ji">🏛️</div><div class="jt">Internet Archive</div><div class="jd">35+ million books, movies, software. Free forever.</div></j>
+      </g>
+
+      <e class="h4">🎓 Academic & Research</e>
+      <g class="c2">
+        <j href="https://openalex.org" target="_blank"><div class="ji">🎓</div><div class="jt">OpenAlex</div><div class="jd">250M+ scholarly works. Fully open academic catalog. An EVOD standard.</div></j>
+        <j href="https://scholar.google.com" target="_blank"><div class="ji">🔬</div><div class="jt">Google Scholar</div><div class="jd">Academic papers, theses, books, abstracts.</div></j>
+        <j href="https://arxiv.org" target="_blank"><div class="ji">📄</div><div class="jt">arXiv</div><div class="jd">Preprints in physics, math, CS, biology.</div></j>
+        <j href="https://pubmed.ncbi.nlm.nih.gov" target="_blank"><div class="ji">💊</div><div class="jt">PubMed</div><div class="jd">35M+ biomedical literature citations.</div></j>
+      </g>
+
+      <e class="h4">🌍 Global Institutions & OKRs</e>
+      <g class="c2">
+        <j href="https://www.worldbank.org" target="_blank"><div class="ji">🏦</div><div class="jt">World Bank</div><div class="jd">Data, research, projects for development. OKRs for humanity.</div></j>
+        <j href="https://www.un.org" target="_blank"><div class="ji">🇺🇳</div><div class="jt">United Nations</div><div class="jd">International cooperation, peace, SDGs.</div></j>
+        <j href="https://www.who.int" target="_blank"><div class="ji">🏥</div><div class="jt">WHO</div><div class="jd">World Health Organization. Global public health.</div></j>
+        <j href="https://www.wto.org" target="_blank"><div class="ji">🌐</div><div class="jt">WTO</div><div class="jd">World Trade Organization. Global trade rules.</div></j>
+      </g>
+
+      <e class="h4">🌿 Ecology & Non-Profit</e>
+      <g class="c2">
+        <j href="https://www.worldwildlife.org" target="_blank"><div class="ji">🐼</div><div class="jt">WWF</div><div class="jd">World Wildlife Fund. Conservation and climate.</div></j>
+        <j href="https://www.greenpeace.org" target="_blank"><div class="ji">🌱</div><div class="jt">Greenpeace</div><div class="jd">Environmental activism and campaigns.</div></j>
+        <j href="https://www.khanacademy.org" target="_blank"><div class="ji">🎓</div><div class="jt">Khan Academy</div><div class="jd">Free world-class education for anyone, anywhere.</div></j>
+        <j href="https://www.idealist.org" target="_blank"><div class="ji">🤝</div><div class="jt">Idealist</div><div class="jd">Connect with non-profits, jobs, volunteer opportunities.</div></j>
+      </g>
+
+      <e class="h4">🚀 Space & Science</e>
+      <g class="c2">
+        <j href="https://www.nasa.gov" target="_blank"><div class="ji">🚀</div><div class="jt">NASA</div><div class="jd">Space exploration, Earth science, aeronautics.</div></j>
+        <j href="https://www.esa.int" target="_blank"><div class="ji">🛰️</div><div class="jt">ESA</div><div class="jd">European Space Agency. Space science and exploration.</div></j>
+        <j href="https://www.isro.gov.in" target="_blank"><div class="ji">🇮🇳</div><div class="jt">ISRO</div><div class="jd">Indian Space Research Organisation.</div></j>
+        <j href="https://www.jaxa.jp" target="_blank"><div class="ji">🇯🇵</div><div class="jt">JAXA</div><div class="jd">Japan Aerospace Exploration Agency.</div></j>
+      </g>
+    </b>
+
+    <!-- EVOD PROTOCOL CONCEPT -->
+    <e class="h2">⚡ The EVOD Protocol — A New Internet Layer</e>
+    <b class="sky">
+      <d>The EVOD network is not just a collection of sites. It is a <strong style="color:#38bdf8">new communication protocol</strong> — more secured, verified, and perfect for human evolution. It avoids the garbage of millions of irrelevant, outdated, ad-filled sites.</d>
+      
+      <e class="h4">How it works — Semantic Cloud Workers</e>
+      <d>Like <a href="https://developers.openai.com/api/docs/guides/retrieval" target="_blank" style="color:#38bdf1;text-decoration:underline">OpenAI's retrieval system</a>, each EVOD node uses <strong style="color:#38bdf8">semantic embeddings</strong> to understand the essence of content. Cloud Workers process queries and route them to the most relevant verified nodes.</d>
+      
+      <x>┌─────────────────────────────────────┐
+│       EVOD CLOUD WORKER NODE          │
+├─────────────────────────────────────┤
+│  1. User query → Semantic embedding │
+│  2. Match against verified sites    │
+│  3. Weight by: trust, recency,      │
+│     relevance, human-development    │
+│  4. Return curated pathway          │
+│  5. Cache in temp storage (PWA)     │
+│  6. Sync across mesh network        │
+└─────────────────────────────────────┘</x>
+
+      <e class="h4">The EVOD Page Format</e>
+      <d>Instead of static HTML pages, EVOD uses <strong style="color:#38bdf8">living knowledge nodes</strong>:</d>
+      <x>{
+  "type": "EVOD_PAGE",
+  "topic": "Tree",
+  "layers": ["biology","ecology","culture","medicine","economics"],
+  "connections": ["forest","water","soil","climate"],
+  "contributors": 500,
+  "trust": 0.94,
+  "lastEvolved": "2026-06-25"
+}</x>
+
+      <e class="h4">Offline-First Mesh Architecture</e>
+      <d>Each EVOD node can run offline on a <strong style="color:#10b981">Raspberry Pi + local storage + WiFi hotspot</strong>. A school connects students, teachers, books, videos, experiments, local knowledge — no internet needed.</d>
+      <g class="flow">
+        <f>School Node</f><a class="arr">→</a>
+        <f>Village Node</f><a class="arr">→</a>
+        <f>District Node</f><a class="arr">→</a>
+        <f>Country Node</f><a class="arr">→</a>
+        <f class="gold">Global EVOD</f>
+      </g>
+    </b>
+
+    <!-- AI + HUMAN EVOLUTION -->
+    <e class="h2">🤖 AI + Human Evolution</e>
+    <b>
+      <d>Large language models demonstrate that language can create powerful connections between concepts. Humans have done something similar for thousands of years. Languages are compressed knowledge systems. Words carry:</d>
+      <g class="flow">
+        <t>📜 history</t><t>🎭 culture</t><t>❤️ emotion</t>
+        <t>💭 meaning</t><t>🧠 memory</t><t>✨ possibility</t>
+      </g>
+      <d class="gold">The future is not only about artificial intelligence. It is about combining: <strong>Human intelligence × Collective knowledge × Ecological awareness × Creative technology</strong> — to build systems that help humanity flourish.</d>
+      <d>The e/arth Engine explores this meeting point. It is a bridge between human creativity and intelligent systems — where technology helps humanity discover better ways to connect, contribute, and evolve.</d>
+    </b>
+
+    <!-- LIBERATION PATH -->
+    <e class="h2">🕊️ The Liberation Path</e>
+    <b class="eco">
+      <d>The final question: How does a human move from:</d>
+      <g class="flow">
+        <f>Confusion</f><a class="arr">→</a>
+        <f>Awareness</f><a class="arr">→</a>
+        <f>Understanding</f><a class="arr">→</a>
+        <f>Contribution</f><a class="arr">→</a>
+        <f class="gold">Freedom</f>
+      </g>
+      <q>"Mukti is not escape from life. Mukti is freedom while participating fully in life."</q>
+      <d>Every person has a different path. There are infinite ways to learn, create, serve, and evolve. The dots become pathways. The pathways become discoveries. The discoveries become transformation.</d>
+    </b>
+
+    <!-- CREATOR -->
+    <div class="text-center py-12 border-t border-white/10 mt-12">
+      <e class="h1" style="font-size:clamp(32px,6vw,48px)">Krishna Bharat</e>
+      <d class="center" style="color:#64748b;letter-spacing:3px;text-transform:uppercase;font-size:11px;margin-bottom:20px">Thought Scientist · Orchestrator</d>
+      <d class="center" style="max-width:700px;margin:0 auto">e/arth Engine is envisioned and orchestrated by Krishna Bharat. The project explores the relationship between human consciousness, language, knowledge, technology, ecology, and civilization. The vision is to create a bridge between human creativity and intelligent systems — where technology helps humanity discover better ways to connect, contribute, and evolve.</d>
+      <d class="center sm" style="margin-top:30px;color:#475569">© 2026 · EVOD · Earth Evolutionary Knowledge Network</d>
+      <d class="center sm" style="color:#475569">A Living Map of Human Possibilities</d>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══ ENGINE SCRIPT ═══ -->
+<script>
+// ═══ 3D CONSTELLATION ENGINE ═══
+const hub=document.getElementById('hub'),svg=document.getElementById('lines'),SVG_O=10000;
+let cam={x:0,y:0,z:1,rx:0,ry:0},tgt={x:0,y:0,z:1,rx:0,ry:0};
+let nodes=[],path=[],isAnim=false;
+
+// Hammer.js gestures (strictly on viewport)
+const mc=new Hammer.Manager(document.getElementById('viewport'));
+mc.add(new Hammer.Pan({direction:Hammer.DIRECTION_ALL,threshold:0}));
+mc.add(new Hammer.Pinch({enable:true}));
+mc.add(new Hammer.Tap({event:'doubletap',taps:2}));
+mc.get('pinch').recognizeWith(mc.get('pan'));
+let pinchStart=1,dragging=false,lastP={x:0,y:0};
+
+mc.on('panstart',e=>{dragging=true;lastP={x:e.center.x,y:e.center.y}});
+mc.on('panmove',e=>{
+  if(!dragging)return;
+  const dx=e.center.x-lastP.x,dy=e.center.y-lastP.y;
+  if(e.pointers.length>=2){tgt.ry+=dx*.3;tgt.rx-=dy*.3}
+  else{tgt.x+=dx/cam.z;tgt.y+=dy/cam.z}
+  lastP={x:e.center.x,y:e.center.y};
+});
+mc.on('panend',()=>dragging=false);
+mc.on('pinchstart',()=>pinchStart=tgt.z);
+mc.on('pinch',e=>tgt.z=Math.max(.1,Math.min(5,pinchStart*e.scale)));
+mc.on('doubletap',reset);
+document.getElementById('viewport').addEventListener('wheel',e=>{tgt.z=Math.max(.1,Math.min(5,tgt.z-e.deltaY*.001))},{passive:true});
+
+// ═══ EVOD NETWORK DATA ═══
+const EVOD_SITES=[
+  {icon:'📖',name:'Wikipedia',url:'https://en.wikipedia.org/w/index.php?search='},
+  {icon:'📚',name:'Kids Miraheze',url:'https://kids.miraheze.org/w/index.php?search='},
+  {icon:'🎓',name:'OpenAlex',url:'https://openalex.org/works?search='},
+  {icon:'🔬',name:'Google Scholar',url:'https://scholar.google.com/scholar?q='},
+  {icon:'📄',name:'arXiv',url:'https://arxiv.org/search/?query='},
+  {icon:'💊',name:'PubMed',url:'https://pubmed.ncbi.nlm.nih.gov/?term='},
+  {icon:'📺',name:'YouTube',url:'https://youtube.com/results?search_query='},
+  {icon:'🎤',name:'TED',url:'https://www.ted.com/search?q='},
+  {icon:'🏛️',name:'Internet Archive',url:'https://archive.org/search?query='},
+  {icon:'📗',name:'Open Library',url:'https://openlibrary.org/search?q='},
+  {icon:'📦',name:'Amazon',url:'https://amazon.com/s?k='},
+  {icon:'📖',name:'Goodreads',url:'https://goodreads.com/search?q='},
+  {icon:'💬',name:'Reddit',url:'https://reddit.com/search/?q='},
+  {icon:'🐙',name:'GitHub',url:'https://github.com/search?q='},
+  {icon:'🤝',name:'Meetup',url:'https://meetup.com/find/?keywords='},
+  {icon:'🗺️',name:'OpenStreetMap',url:'https://openstreetmap.org/search?query='},
+  {icon:'🌍',name:'Idealist',url:'https://idealist.org/en/search?query='},
+  {icon:'🇺🇳',name:'UN',url:'https://un.org/en/search?search='},
+  {icon:'🏥',name:'WHO',url:'https://who.int/search?query='},
+  {icon:'🏦',name:'World Bank',url:'https://worldbank.org/en/search?query='},
+  {icon:'🐼',name:'WWF',url:'https://worldwildlife.org/search?query='},
+  {icon:'🚀',name:'NASA',url:'https://nasa.gov/search/?query='},
+  {icon:'🛰️',name:'ESA',url:'https://esa.int/Search?SearchText='},
+  {icon:'🎓',name:'Khan Academy',url:'https://khanacademy.org/search?page_search_query='}
+];
+
+// ═══ SPAWN NODE ═══
+function spawn(px,py,pz,data,idx,total,level,hue){
+  const r=level===1?400:200,a=(idx/total)*Math.PI*2;
+  const x=px+Math.cos(a)*r,y=py+Math.sin(a)*r,z=pz+Math.sin(a*2)*40;
+  const col=`hsl(${hue+idx*30},70%,60%)`;
+  
+  // SVG line
+  const path=document.createElementNS('http://www.w3.org/2000/svg','path');
+  path.setAttribute('d',`M${px+SVG_O} ${py+SVG_O} Q${(px+x)/2+SVG_O} ${(py+y)/2+SVG_O} ${x+SVG_O} ${y+SVG_O}`);
+  path.setAttribute('class','line');
+  path.style.stroke=col;
+  svg.appendChild(path);
+  
+  // Node element
+  const el=document.createElement('div');
+  el.className=level>=3?'card':'node';
+  el.style.cssText=`--x:${x}px;--y:${y}px;--z:${z}px;color:${col};border-color:${col};animation-delay:${idx*.1}s`;
+  el.innerHTML=level>=3?`<div class="text-2xl mb-1">${data.icon}</div><div class="text-xs font-bold">${data.name}</div>`:`<div class="text-2xl">${data.icon}</div><div class="text-[9px] uppercase tracking-wider mt-1">${data.name}</div>`;
+  
+  el.onclick=e=>{
+    e.stopPropagation();
+    if(isAnim)return;
+    isAnim=true;
+    tgt.x=-x*.7;tgt.y=-y*.7;tgt.z=Math.max(.5,1.5-level*.15);
+    path.push({name:data.name,icon:data.icon,x,y,z});
+    document.getElementById('depth').innerText=`DEPTH: ${level} · NODES: ${nodes.length}`;
+    
+    setTimeout(()=>{
+      if(level>=3){
+        // Show EVOD network portals
+        const shuffled=[...EVOD_SITES].sort(()=>Math.random()-.5).slice(0,6);
+        shuffled.forEach((s,i)=>spawn(x,y,z,{icon:s.icon,name:s.name,url:s.url+encodeURIComponent(data.name)},i,shuffled.length,level+1,hue));
+      }else{
+        const children=['Origins','Impact','Future','Ethics','Science'];
+        children.slice(0,3).forEach((c,i)=>spawn(x,y,z,{name:c,icon:'✦'},i,3,level+1,hue));
+      }
+      isAnim=false;
+    },600);
+  };
+  
+  // If it's a portal card, open the site on click
+  if(level>=4 && data.url){
+    el.onclick=e=>{
+      e.stopPropagation();
+      window.open(data.url,'_blank');
+    };
+  }
+  
+  hub.appendChild(el);
+  nodes.push(el);
+}
+
+// ═══ RESET ═══
+function reset(){
+  nodes.forEach(n=>n.remove());
+  nodes=[];
+  svg.innerHTML='';
+  path=[];
+  cam={x:0,y:0,z:1,rx:0,ry:0};
+  tgt={x:0,y:0,z:1,rx:0,ry:0};
+  
+  const seed=document.createElement('div');
+  seed.className='seed';
+  seed.onclick=e=>{
+    e.stopPropagation();
+    seed.style.transition='all .6s';
+    seed.style.transform='translate(-50%,-50%) scale(3)';
+    seed.style.opacity='0';
+    setTimeout(()=>{
+      seed.remove();
+      const roots=[{name:'Self',icon:'👤'},{name:'World',icon:'🌍'},{name:'Action',icon:'💡'}];
+      roots.forEach((r,i)=>spawn(0,0,0,r,i,3,1,i*120));
+      document.getElementById('status').innerText='🌸 Touch any dot to explore';
+    },600);
+  };
+  hub.appendChild(seed);
+  document.getElementById('status').innerText='✨ Touch the Golden Seed';
+  document.getElementById('depth').innerText='DEPTH: 0 · NODES: 0';
+}
+
+function back(){
+  if(path.length>0){
+    path.pop();
+    const last=nodes.slice(-6);
+    last.forEach(n=>n.remove());
+    nodes=nodes.slice(0,-6);
+  }else reset();
+}
+
+function surprise(){
+  reset();
+  setTimeout(()=>{
+    const seed=hub.querySelector('.seed');
+    if(seed)seed.click();
+  },500);
+}
+
+function toggleAbout(){
+  document.getElementById('about').classList.toggle('show');
+}
+
+// ═══ RENDER LOOP ═══
+function lerp(a,b,t){return a+(b-a)*t}
+function render(){
+  cam.x=lerp(cam.x,tgt.x,.08);
+  cam.y=lerp(cam.y,tgt.y,.08);
+  cam.z=lerp(cam.z,tgt.z,.08);
+  cam.rx=lerp(cam.rx,tgt.rx,.08);
+  cam.ry=lerp(cam.ry,tgt.ry,.08);
+  hub.style.transform=`translate(-50%,-50%) scale(${cam.z}) translate3d(${cam.x}px,${cam.y}px,0) rotateX(${cam.rx}deg) rotateY(${cam.ry}deg)`;
+  requestAnimationFrame(render);
+}
+
+// ═══ INIT ═══
+reset();
+render();
+window.addEventListener('contextmenu',e=>e.preventDefault());
+</script>
+</body>
+</html>
